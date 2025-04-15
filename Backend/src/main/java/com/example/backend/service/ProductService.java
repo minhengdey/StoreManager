@@ -24,16 +24,12 @@ public class ProductService {
         if (productRepository.existsByName(request.getName())) {
             throw new AppException(ErrorCode.PRODUCT_EXISTED);
         }
-        Product product = new Product();
-        product.setName(request.getName());
-        product.setPrice(request.getPrice());
-        product.setStockQuantity(request.getStockQuantity());
+        Product product = productMapper.toProduct(request);
         String id = IdGenerator.generateId("PRD");
         while (productRepository.existsById(id)) {
             id = IdGenerator.generateId("PRD");
         }
         product.setId(id);
-        productRepository.addProduct(product);
-        return new ProductResponse(product.getId(), product.getName(), product.getPrice(), product.getStockQuantity());
+        return productMapper.toResponse(productRepository.addProduct(product));
     }
 }

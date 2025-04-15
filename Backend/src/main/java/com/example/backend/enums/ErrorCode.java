@@ -16,7 +16,8 @@ public enum ErrorCode {
 
     CLASS_NOT_FOUND(1001, "Cannot found database driver class name", HttpStatus.NOT_FOUND),
     CONNECT_ERROR(1002, "Cannot connect database", HttpStatus.BAD_REQUEST),
-    PRODUCT_EXISTED(1003, "Product existed", HttpStatus.BAD_REQUEST);
+    PRODUCT_EXISTED(1003, "Product existed", HttpStatus.BAD_REQUEST),
+    PRODUCT_NOT_FOUND(1004, "Product not found", HttpStatus.NOT_FOUND);
 
     int code;
     String message;

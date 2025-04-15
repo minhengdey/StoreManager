@@ -1,6 +1,7 @@
 package com.example.backend.repository;
 
 import com.example.backend.config.DatabaseConfig;
+import com.example.backend.dto.response.ProductResponse;
 import com.example.backend.enums.ErrorCode;
 import com.example.backend.exception.AppException;
 import com.example.backend.model.Product;
@@ -22,7 +23,7 @@ public class ProductRepository {
     DatabaseConfig databaseConfig;
 
     public Product addProduct (Product product) {
-        String sql = "INSERT INTO STOREMANAGER.PRODUCTS (ID, NAME, PRICE, STOCKQUANTITY) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO STOREMANAGER.PRODUCTS (ID, NAME, PRICE, STOCK_QUANTITY) VALUES (?, ?, ?, ?)";
         try (Connection connection = databaseConfig.getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
 
