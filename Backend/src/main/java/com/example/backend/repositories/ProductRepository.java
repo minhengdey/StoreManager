@@ -105,6 +105,19 @@ public class ProductRepository {
         }
     }
 
+    public void deleteProduct (String id) {
+        String sql = "DELETE FROM STOREMANAGER.PRODUCTS WHERE ID = ?";
+        try (Connection connection = databaseConfig.getConnection();
+            PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            preparedStatement.setString(1, id);
+
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            throw new AppException(ErrorCode.CONNECT_ERROR);
+        }
+    }
+
     public boolean existsByName (String name) {
         String sql = "SELECT * FROM STOREMANAGER.PRODUCTS WHERE NAME = ?";
         try (Connection connection = databaseConfig.getConnection();

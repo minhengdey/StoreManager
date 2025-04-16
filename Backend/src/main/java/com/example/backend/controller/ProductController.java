@@ -45,7 +45,12 @@ public class ProductController {
     public ApiResponse<ProductResponse> updateById (@PathVariable("id") String id, @Valid @RequestBody ProductRequest request) {
         return ApiResponse.<ProductResponse>builder()
                 .code(1000)
-                .result(productService.update(request, id))
+                .result(productService.updateProduct(request, id))
                 .build();
+    }
+
+    @DeleteMapping(value = "/{id}")
+    public void deleteByID (@PathVariable("id") String id) {
+        productService.deleteProduct(id);
     }
 }

@@ -41,12 +41,19 @@ public class ProductService {
         return productMapper.toResponse(productRepository.findByName(name));
     }
 
-    public ProductResponse update (ProductRequest request, String id) {
+    public ProductResponse updateProduct (ProductRequest request, String id) {
         Product product = productRepository.findById(id);
         if (productRepository.existsByName(request.getName())) {
             throw new AppException(ErrorCode.PRODUCT_EXISTED);
         }
         productMapper.update(product, request);
         return productMapper.toResponse(productRepository.saveProduct(product));
+    }
+
+    public void deleteProduct (String id) {
+        if (!productRepository.existsById(id)) {
+            throw new AppException(ErrorCode.PRODUCT_NOT_FOUND);
+        }
+        productRepository.deleteProduct(id);
     }
 }
