@@ -1,13 +1,13 @@
-package com.example.backend.service;
+package com.example.backend.services;
 
 import com.example.backend.dto.request.ProductRequest;
 import com.example.backend.dto.response.ProductResponse;
 import com.example.backend.enums.ErrorCode;
-import com.example.backend.exception.AppException;
-import com.example.backend.mapper.ProductMapper;
-import com.example.backend.model.Product;
-import com.example.backend.repository.ProductRepository;
-import com.example.backend.util.IdGenerator;
+import com.example.backend.exceptions.AppException;
+import com.example.backend.mappers.ProductMapper;
+import com.example.backend.models.Product;
+import com.example.backend.repositories.ProductRepository;
+import com.example.backend.utils.IdGenerator;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -39,5 +39,14 @@ public class ProductService {
 
     public ProductResponse findByName (String name) {
         return productMapper.toResponse(productRepository.findByName(name));
+    }
+
+    public ProductResponse update (ProductRequest request, String id) {
+        Product product = productRepository.findById(id);
+        if (productRepository.existsByName(request.getName())) {
+            throw new AppException(ErrorCode.PRODUCT_EXISTED);
+        }
+        productMapper.update(product, request);
+        return productMapper.toResponse(productRepository.saveProduct(product));
     }
 }

@@ -1,10 +1,10 @@
-package com.example.backend.repository;
+package com.example.backend.repositories;
 
-import com.example.backend.config.DatabaseConfig;
-import com.example.backend.dto.response.ProductResponse;
+import com.example.backend.configs.DatabaseConfig;
+import com.example.backend.dto.request.ProductRequest;
 import com.example.backend.enums.ErrorCode;
-import com.example.backend.exception.AppException;
-import com.example.backend.model.Product;
+import com.example.backend.exceptions.AppException;
+import com.example.backend.models.Product;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -82,6 +82,24 @@ public class ProductRepository {
             } else {
                 throw new AppException(ErrorCode.PRODUCT_NOT_FOUND);
             }
+        } catch (SQLException e) {
+            throw new AppException(ErrorCode.CONNECT_ERROR);
+        }
+    }
+
+    public Product saveProduct (Product product) {
+        String sql = "UPDATE STOREMANAGER.PRODUCTS SET NAME = ?, PRICE = ?, STOCK_QUANTITY = ? WHERE ID = ?";
+        try (Connection connection = databaseConfig.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            preparedStatement.setString(1, product.getName());
+            preparedStatement.setFloat(2, product.getPrice());
+            preparedStatement.setInt(3, product.getStockQuantity());
+            preparedStatement.setString(4, product.getId());
+
+            preparedStatement.executeUpdate();
+
+            return product;
         } catch (SQLException e) {
             throw new AppException(ErrorCode.CONNECT_ERROR);
         }

@@ -3,12 +3,11 @@ package com.example.backend.controller;
 import com.example.backend.dto.request.ProductRequest;
 import com.example.backend.dto.response.ApiResponse;
 import com.example.backend.dto.response.ProductResponse;
-import com.example.backend.service.ProductService;
+import com.example.backend.services.ProductService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -39,6 +38,14 @@ public class ProductController {
         return ApiResponse.<ProductResponse>builder()
                 .code(1000)
                 .result(productService.findByName(name))
+                .build();
+    }
+
+    @PutMapping(value = "/{id}")
+    public ApiResponse<ProductResponse> updateById (@PathVariable("id") String id, @Valid @RequestBody ProductRequest request) {
+        return ApiResponse.<ProductResponse>builder()
+                .code(1000)
+                .result(productService.update(request, id))
                 .build();
     }
 }

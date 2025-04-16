@@ -1,4 +1,4 @@
-package com.example.backend.exception;
+package com.example.backend.exceptions;
 
 import com.example.backend.enums.ErrorCode;
 import lombok.AccessLevel;

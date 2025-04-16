@@ -1,4 +1,4 @@
-package com.example.backend.model;
+package com.example.backend.models;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -9,9 +9,9 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Product {
+public class OrderItem {
     String id;
-    String name;
-    Float price;
-    Integer stockQuantity;
+    Integer quantity;
+    Double unitPrice;
+    Product product;
 }

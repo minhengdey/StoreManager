@@ -1,5 +1,6 @@
 package com.example.backend.dto.request;
 
+import com.example.backend.utils.IdGenerator;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
