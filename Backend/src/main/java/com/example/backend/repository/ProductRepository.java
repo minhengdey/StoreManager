@@ -41,6 +41,52 @@ public class ProductRepository {
         }
     }
 
+    public Product findById (String id) {
+        String sql = "SELECT * FROM STOREMANAGER.PRODUCTS WHERE ID = ?";
+        try (Connection connection = databaseConfig.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            preparedStatement.setString(1, id);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            if (resultSet.next()) {
+                String name = resultSet.getString("name");
+                Float price = resultSet.getFloat("price");
+                Integer stockQuantity = resultSet.getInt("stock_quantity");
+
+                return new Product(id, name, price, stockQuantity);
+            } else {
+                throw new AppException(ErrorCode.PRODUCT_NOT_FOUND);
+            }
+        } catch (SQLException e) {
+            throw new AppException(ErrorCode.CONNECT_ERROR);
+        }
+    }
+
+    public Product findByName (String name) {
+        String sql = "SELECT * FROM STOREMANAGER.PRODUCTS WHERE NAME = ?";
+        try (Connection connection = databaseConfig.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            preparedStatement.setString(1, name);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            if (resultSet.next()) {
+                String id = resultSet.getString("id");
+                Float price = resultSet.getFloat("price");
+                Integer stockQuantity = resultSet.getInt("stock_quantity");
+
+                return new Product(id, name, price, stockQuantity);
+            } else {
+                throw new AppException(ErrorCode.PRODUCT_NOT_FOUND);
+            }
+        } catch (SQLException e) {
+            throw new AppException(ErrorCode.CONNECT_ERROR);
+        }
+    }
+
     public boolean existsByName (String name) {
         String sql = "SELECT * FROM STOREMANAGER.PRODUCTS WHERE NAME = ?";
         try (Connection connection = databaseConfig.getConnection();

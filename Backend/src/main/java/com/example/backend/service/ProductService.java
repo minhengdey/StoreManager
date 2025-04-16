@@ -32,4 +32,12 @@ public class ProductService {
         product.setId(id);
         return productMapper.toResponse(productRepository.addProduct(product));
     }
+
+    public ProductResponse findById (String id) {
+        return productMapper.toResponse(productRepository.findById(id));
+    }
+
+    public ProductResponse findByName (String name) {
+        return productMapper.toResponse(productRepository.findByName(name));
+    }
 }

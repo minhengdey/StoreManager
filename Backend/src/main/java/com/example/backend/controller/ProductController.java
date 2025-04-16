@@ -8,10 +8,8 @@ import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(value = "/product")
@@ -25,6 +23,22 @@ public class ProductController {
         return ApiResponse.<ProductResponse>builder()
                 .code(1000)
                 .result(productService.addProduct(request))
+                .build();
+    }
+
+    @GetMapping(value = "/by-id/{id}")
+    public ApiResponse<ProductResponse> findById (@PathVariable("id") String id) {
+        return ApiResponse.<ProductResponse>builder()
+                .code(1000)
+                .result(productService.findById(id))
+                .build();
+    }
+
+    @GetMapping(value = "/by-name/{name}")
+    public ApiResponse<ProductResponse> findByName (@PathVariable("name") String name) {
+        return ApiResponse.<ProductResponse>builder()
+                .code(1000)
+                .result(productService.findByName(name))
                 .build();
     }
 }
