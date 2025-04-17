@@ -12,7 +12,6 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CustomerRequest {
-
     @Size(min = 2, max = 30)
     String name;
 

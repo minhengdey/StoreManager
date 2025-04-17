@@ -7,10 +7,7 @@ import com.example.backend.services.CustomerService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(value = "/customer")
@@ -25,6 +22,14 @@ public class CustomerController {
         return ApiResponse.<CustomerResponse>builder()
                 .code(1000)
                 .result(customerService.addCustomer(request))
+                .build();
+    }
+
+    @GetMapping(value = "/{id}")
+    public ApiResponse<CustomerResponse> getCustomerById (@PathVariable("id") String id) {
+        return ApiResponse.<CustomerResponse>builder()
+                .code(1000)
+                .result(customerService.getCustomerById(id))
                 .build();
     }
 }

@@ -30,4 +30,8 @@ public class CustomerService {
 
         return customerMapper.toResponse(customerRepository.addCustomer(customer));
     }
+
+    public CustomerResponse getCustomerById (String id) {
+        return customerMapper.toResponse(customerRepository.findById(id));
+    }
 }

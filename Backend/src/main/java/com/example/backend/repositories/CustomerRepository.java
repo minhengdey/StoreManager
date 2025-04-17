@@ -55,4 +55,28 @@ public class CustomerRepository {
             throw new AppException(ErrorCode.CONNECT_ERROR);
         }
     }
+
+    public Customer findById (String id) {
+        String sql = "SELECT * FROM STOREMANAGER.CUSTOMER WHERE ID = ?";
+
+        try (Connection connection = databaseConfig.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            preparedStatement.setString(1, id);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            if (resultSet.next()) {
+                String name = resultSet.getString("name");
+                String phone = resultSet.getString("phone");
+                String email = resultSet.getString("email");
+
+                return new Customer(id, name, phone, email);
+            } else {
+                throw new AppException(ErrorCode.CUSTOMER_NOT_FOUND);
+            }
+        } catch (SQLException e) {
+            throw new AppException(ErrorCode.CONNECT_ERROR);
+        }
+    }
 }
