@@ -30,4 +30,9 @@ public class OrderController {
                 .result(ordersService.getById(id))
                 .build();
     }
+
+    @DeleteMapping(value = "/{id}")
+    public void deleteOrder (@PathVariable("id") String id) {
+        ordersService.deleteOrders(id);
+    }
 }

@@ -1,6 +1,8 @@
 package com.example.backend.services;
 
 import com.example.backend.dto.response.OrdersResponse;
+import com.example.backend.enums.ErrorCode;
+import com.example.backend.exceptions.AppException;
 import com.example.backend.mappers.OrdersMapper;
 import com.example.backend.models.Customer;
 import com.example.backend.models.Orders;
@@ -39,5 +41,12 @@ public class OrdersService {
 
     public OrdersResponse getById (String id) {
         return ordersMapper.toResponse(ordersRepository.findById(id));
+    }
+
+    public void deleteOrders (String id) {
+        if (!ordersRepository.existsById(id)) {
+            throw new AppException(ErrorCode.ORDER_NOT_FOUND);
+        }
+        ordersRepository.deleteOrder(id);
     }
 }

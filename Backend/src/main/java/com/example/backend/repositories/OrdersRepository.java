@@ -86,6 +86,20 @@ public class OrdersRepository {
         }
     }
 
+    public void deleteOrder (String id) {
+        String sql = "DELETE FROM STOREMANAGER.ORDERS WHERE ID = ?";
+
+        try (Connection connection = databaseConfig.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            preparedStatement.setString(1, id);
+
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            throw new AppException(ErrorCode.CONNECT_ERROR);
+        }
+    }
+
     public boolean existsById (String id) {
         String sql = "SELECT * FROM STOREMANAGER.ORDERS WHERE ID = ?";
 
