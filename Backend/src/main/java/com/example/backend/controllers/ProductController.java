@@ -1,4 +1,4 @@
-package com.example.backend.controller;
+package com.example.backend.controllers;
 
 import com.example.backend.dto.request.ProductRequest;
 import com.example.backend.dto.response.ApiResponse;
@@ -9,6 +9,8 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping(value = "/product")
@@ -52,5 +54,13 @@ public class ProductController {
     @DeleteMapping(value = "/{id}")
     public void deleteByID (@PathVariable("id") String id) {
         productService.deleteProduct(id);
+    }
+
+    @GetMapping(value = "/all")
+    public ApiResponse<List<ProductResponse>> getAll () {
+        return ApiResponse.<List<ProductResponse>>builder()
+                .code(1000)
+                .result(productService.getAllProduct())
+                .build();
     }
 }

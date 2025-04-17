@@ -13,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -55,5 +57,9 @@ public class ProductService {
             throw new AppException(ErrorCode.PRODUCT_NOT_FOUND);
         }
         productRepository.deleteProduct(id);
+    }
+
+    public List<ProductResponse> getAllProduct () {
+        return productRepository.getAllProduct().stream().map(productMapper::toResponse).toList();
     }
 }

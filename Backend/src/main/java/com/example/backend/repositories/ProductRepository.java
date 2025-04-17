@@ -14,6 +14,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 @Repository
 @RequiredArgsConstructor
@@ -113,6 +115,29 @@ public class ProductRepository {
             preparedStatement.setString(1, id);
 
             preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            throw new AppException(ErrorCode.CONNECT_ERROR);
+        }
+    }
+
+    public List<Product> getAllProduct () {
+        String sql = "SELECT * FROM STOREMANAGER.PRODUCTS";
+        try (Connection connection = databaseConfig.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+            List<Product> list = new ArrayList<>();
+
+            while (resultSet.next()) {
+                String id = resultSet.getString("id");
+                String name = resultSet.getString("name");
+                Float price = resultSet.getFloat("price");
+                Integer stockQuantity = resultSet.getInt("stock_quantity");
+
+                list.add(new Product(id, name, price, stockQuantity));
+            }
+
+            return list;
         } catch (SQLException e) {
             throw new AppException(ErrorCode.CONNECT_ERROR);
         }
