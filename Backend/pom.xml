@@ -149,7 +149,10 @@
 					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
+<<<<<<< Updated upstream
 <<<<<<< HEAD
+=======
+>>>>>>> Stashed changes
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -164,8 +167,11 @@
 					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
+<<<<<<< Updated upstream
 =======
 >>>>>>> config
+=======
+>>>>>>> Stashed changes
 		</plugins>
 	</build>
 
