@@ -15,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -52,5 +54,12 @@ public class OrderItemService {
         }
         orderItemMapper.update(orderItem, request);
         return orderItemMapper.toResponse(orderItemRepository.saveOrderItem(orderItem));
+    }
+
+    public List<OrderItemResponse> getAllByProductId (String productId) {
+        if (!productRepository.existsById(productId)) {
+            throw new AppException(ErrorCode.PRODUCT_NOT_FOUND);
+        }
+        return orderItemRepository.getAllByProductId(productId).stream().map(orderItemMapper::toResponse).toList();
     }
 }

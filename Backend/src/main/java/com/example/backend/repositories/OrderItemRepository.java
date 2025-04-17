@@ -14,6 +14,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 @Repository
 @RequiredArgsConstructor
@@ -93,6 +95,30 @@ public class OrderItemRepository {
             preparedStatement.executeUpdate();
 
             return orderItem;
+        } catch (SQLException e) {
+            throw new AppException(ErrorCode.CONNECT_ERROR);
+        }
+    }
+
+    public List<OrderItem> getAllByProductId (String productId) {
+        String sql = "SELECT * FROM STOREMANAGER.ORDER_ITEM WHERE PRODUCT_ID = ?";
+
+        try (Connection connection = databaseConfig.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            preparedStatement.setString(1, productId);
+
+            List<OrderItem> list = new ArrayList<>();
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            while (resultSet.next()) {
+                String id = resultSet.getString("id");
+                Integer quantity = resultSet.getInt("quantity");
+
+                list.add(new OrderItem(id, quantity, productRepository.findById(productId)));
+            }
+
+            return list;
         } catch (SQLException e) {
             throw new AppException(ErrorCode.CONNECT_ERROR);
         }

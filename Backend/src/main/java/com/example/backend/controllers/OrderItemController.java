@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping(value = "/order-item")
 @RequiredArgsConstructor
@@ -38,6 +40,14 @@ public class OrderItemController {
         return ApiResponse.<OrderItemResponse>builder()
                 .code(1000)
                 .result(orderItemService.updateOrderItem(request, id))
+                .build();
+    }
+
+    @GetMapping(value = "/all-by-productId/{productId}")
+    public ApiResponse<List<OrderItemResponse>> getAllByProductId (@PathVariable("productId") String productId) {
+        return ApiResponse.<List<OrderItemResponse>>builder()
+                .code(1000)
+                .result(orderItemService.getAllByProductId(productId))
                 .build();
     }
 }
