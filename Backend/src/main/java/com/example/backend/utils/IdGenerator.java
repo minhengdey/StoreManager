@@ -1,4 +1,4 @@
-package com.example.backend.util;
+package com.example.backend.utils;
 
 import java.util.UUID;
 

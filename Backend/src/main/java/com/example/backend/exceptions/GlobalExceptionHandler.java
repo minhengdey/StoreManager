@@ -2,7 +2,6 @@ package com.example.backend.exceptions;
 
 import com.example.backend.dto.response.ApiResponse;
 import com.example.backend.enums.ErrorCode;
-import com.example.backend.exception.AppException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
