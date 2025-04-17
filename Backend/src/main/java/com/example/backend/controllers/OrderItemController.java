@@ -32,4 +32,12 @@ public class OrderItemController {
                 .result(orderItemService.getById(id))
                 .build();
     }
+
+    @PutMapping(value = "/{id}")
+    public ApiResponse<OrderItemResponse> updateOrderItem (@Valid @RequestBody OrderItemRequest request, @PathVariable("id") String id) {
+        return ApiResponse.<OrderItemResponse>builder()
+                .code(1000)
+                .result(orderItemService.updateOrderItem(request, id))
+                .build();
+    }
 }

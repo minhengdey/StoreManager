@@ -44,4 +44,13 @@ public class OrderItemService {
     public OrderItemResponse getById (String id) {
         return orderItemMapper.toResponse(orderItemRepository.findById(id));
     }
+
+    public OrderItemResponse updateOrderItem (OrderItemRequest request, String id) {
+        OrderItem orderItem = orderItemRepository.findById(id);
+        if (request.getQuantity() > orderItem.getProduct().getStockQuantity()) {
+            throw new AppException(ErrorCode.ORDER_ITEM_INVALID);
+        }
+        orderItemMapper.update(orderItem, request);
+        return orderItemMapper.toResponse(orderItemRepository.saveOrderItem(orderItem));
+    }
 }

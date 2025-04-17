@@ -77,5 +77,24 @@ public class OrderItemRepository {
             }
         } catch (SQLException e) {
             throw new AppException(ErrorCode.CONNECT_ERROR);
-        }    }
+        }
+    }
+
+    public OrderItem saveOrderItem (OrderItem orderItem) {
+        String sql = "UPDATE STOREMANAGER.ORDER_ITEM SET QUANTITY = ?, PRODUCT_ID = ? WHERE ID = ?";
+
+        try (Connection connection = databaseConfig.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            preparedStatement.setInt(1, orderItem.getQuantity());
+            preparedStatement.setString(2, orderItem.getProduct().getId());
+            preparedStatement.setString(3, orderItem.getId());
+
+            preparedStatement.executeUpdate();
+
+            return orderItem;
+        } catch (SQLException e) {
+            throw new AppException(ErrorCode.CONNECT_ERROR);
+        }
+    }
 }
