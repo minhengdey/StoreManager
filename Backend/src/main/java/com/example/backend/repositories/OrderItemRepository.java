@@ -4,6 +4,7 @@ import com.example.backend.configs.DatabaseConfig;
 import com.example.backend.enums.ErrorCode;
 import com.example.backend.exceptions.AppException;
 import com.example.backend.models.OrderItem;
+import com.example.backend.models.Product;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -20,12 +21,10 @@ import java.sql.SQLException;
 public class OrderItemRepository {
 
     DatabaseConfig databaseConfig;
+    ProductRepository productRepository;
 
     public OrderItem addOrderItem (OrderItem orderItem) {
         String sql = "INSERT INTO STOREMANAGER.ORDER_ITEM (ID, QUANTITY, PRODUCT_ID) VALUES (?, ?, ?)";
-        System.out.println(orderItem.getId());
-        System.out.println(orderItem.getQuantity());
-        System.out.println(orderItem.getProduct().getName());
 
         try (Connection connection = databaseConfig.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
@@ -57,4 +56,26 @@ public class OrderItemRepository {
             throw new AppException(ErrorCode.CONNECT_ERROR);
         }
     }
+
+    public OrderItem findById (String id) {
+        String sql = "SELECT * FROM STOREMANAGER.ORDER_ITEM WHERE ID = ?";
+
+        try (Connection connection = databaseConfig.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            preparedStatement.setString(1, id);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            if (resultSet.next()) {
+                Integer quantity = resultSet.getInt("quantity");
+                Product product = productRepository.findById(resultSet.getString("product_id"));
+
+                return new OrderItem(id, quantity, product);
+            } else {
+                throw new AppException(ErrorCode.ORDER_ITEM_NOT_FOUND);
+            }
+        } catch (SQLException e) {
+            throw new AppException(ErrorCode.CONNECT_ERROR);
+        }    }
 }

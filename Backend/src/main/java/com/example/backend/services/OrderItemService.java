@@ -2,6 +2,8 @@ package com.example.backend.services;
 
 import com.example.backend.dto.request.OrderItemRequest;
 import com.example.backend.dto.response.OrderItemResponse;
+import com.example.backend.enums.ErrorCode;
+import com.example.backend.exceptions.AppException;
 import com.example.backend.mappers.OrderItemMapper;
 import com.example.backend.models.OrderItem;
 import com.example.backend.models.Product;
@@ -24,6 +26,9 @@ public class OrderItemService {
 
     public OrderItemResponse addOrderItem (OrderItemRequest request, String productId) {
         Product product = productRepository.findById(productId);
+        if (request.getQuantity() > product.getStockQuantity()) {
+            throw new AppException(ErrorCode.ORDER_ITEM_INVALID);
+        }
         OrderItem orderItem = orderItemMapper.toOrderItem(request);
         orderItem.setProduct(product);
 
@@ -34,5 +39,9 @@ public class OrderItemService {
         orderItem.setId(id);
 
         return orderItemMapper.toResponse(orderItemRepository.addOrderItem(orderItem));
+    }
+
+    public OrderItemResponse getById (String id) {
+        return orderItemMapper.toResponse(orderItemRepository.findById(id));
     }
 }

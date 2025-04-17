@@ -24,4 +24,12 @@ public class OrderItemController {
                 .result(orderItemService.addOrderItem(request, productId))
                 .build();
     }
+
+    @GetMapping(value = "/{id}")
+    public ApiResponse<OrderItemResponse> getOrderItemById (@PathVariable("id") String id) {
+        return ApiResponse.<OrderItemResponse>builder()
+                .code(1000)
+                .result(orderItemService.getById(id))
+                .build();
+    }
 }
