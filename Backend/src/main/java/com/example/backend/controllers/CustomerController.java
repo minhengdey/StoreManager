@@ -4,6 +4,7 @@ import com.example.backend.dto.request.CustomerRequest;
 import com.example.backend.dto.response.ApiResponse;
 import com.example.backend.dto.response.CustomerResponse;
 import com.example.backend.services.CustomerService;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -18,7 +19,7 @@ public class CustomerController {
     CustomerService customerService;
 
     @PostMapping()
-    public ApiResponse<CustomerResponse> addCustomer (@RequestBody CustomerRequest request) {
+    public ApiResponse<CustomerResponse> addCustomer (@Valid @RequestBody CustomerRequest request) {
         return ApiResponse.<CustomerResponse>builder()
                 .code(1000)
                 .result(customerService.addCustomer(request))
@@ -30,6 +31,14 @@ public class CustomerController {
         return ApiResponse.<CustomerResponse>builder()
                 .code(1000)
                 .result(customerService.getCustomerById(id))
+                .build();
+    }
+
+    @PutMapping(value = "/{id}")
+    public ApiResponse<CustomerResponse> updateCustomer (@Valid @RequestBody CustomerRequest request, @PathVariable("id") String id) {
+        return ApiResponse.<CustomerResponse>builder()
+                .code(1000)
+                .result(customerService.updateCustomer(request, id))
                 .build();
     }
 }

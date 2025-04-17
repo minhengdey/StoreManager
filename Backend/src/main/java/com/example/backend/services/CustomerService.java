@@ -2,6 +2,8 @@ package com.example.backend.services;
 
 import com.example.backend.dto.request.CustomerRequest;
 import com.example.backend.dto.response.CustomerResponse;
+import com.example.backend.enums.ErrorCode;
+import com.example.backend.exceptions.AppException;
 import com.example.backend.mappers.CustomerMapper;
 import com.example.backend.models.Customer;
 import com.example.backend.repositories.CustomerRepository;
@@ -33,5 +35,11 @@ public class CustomerService {
 
     public CustomerResponse getCustomerById (String id) {
         return customerMapper.toResponse(customerRepository.findById(id));
+    }
+
+    public CustomerResponse updateCustomer (CustomerRequest request, String id) {
+        Customer customer = customerRepository.findById(id);
+        customerMapper.update(customer, request);
+        return customerMapper.toResponse(customerRepository.saveCustomer(customer));
     }
 }

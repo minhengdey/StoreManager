@@ -79,4 +79,23 @@ public class CustomerRepository {
             throw new AppException(ErrorCode.CONNECT_ERROR);
         }
     }
+
+    public Customer saveCustomer (Customer customer) {
+        String sql = "UPDATE STOREMANAGER.CUSTOMER SET NAME = ?, PHONE = ?, EMAIL = ? WHERE ID = ?";
+
+        try (Connection connection = databaseConfig.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            preparedStatement.setString(1, customer.getName());
+            preparedStatement.setString(2, customer.getPhone());
+            preparedStatement.setString(3, customer.getEmail());
+            preparedStatement.setString(4, customer.getId());
+
+            preparedStatement.executeUpdate();
+
+            return customer;
+        } catch (SQLException e) {
+            throw new AppException(ErrorCode.CONNECT_ERROR);
+        }
+    }
 }
