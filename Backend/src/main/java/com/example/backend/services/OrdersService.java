@@ -36,4 +36,8 @@ public class OrdersService {
 
         return ordersMapper.toResponse(ordersRepository.addOrders(orders));
     }
+
+    public OrdersResponse getById (String id) {
+        return ordersMapper.toResponse(ordersRepository.findById(id));
+    }
 }

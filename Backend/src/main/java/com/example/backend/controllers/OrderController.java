@@ -3,7 +3,6 @@ package com.example.backend.controllers;
 import com.example.backend.dto.response.ApiResponse;
 import com.example.backend.dto.response.OrdersResponse;
 import com.example.backend.services.OrdersService;
-import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -21,6 +20,14 @@ public class OrderController {
         return ApiResponse.<OrdersResponse>builder()
                 .code(1000)
                 .result(ordersService.createOrders(customerId))
+                .build();
+    }
+
+    @GetMapping(value = "/{id}")
+    public ApiResponse<OrdersResponse> getById (@PathVariable("id") String id) {
+        return ApiResponse.<OrdersResponse>builder()
+                .code(1000)
+                .result(ordersService.getById(id))
                 .build();
     }
 }
