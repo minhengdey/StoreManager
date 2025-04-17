@@ -149,6 +149,7 @@
 					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
+<<<<<<< HEAD
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -163,6 +164,8 @@
 					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
+=======
+>>>>>>> config
 		</plugins>
 	</build>
 
