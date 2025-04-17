@@ -56,6 +56,13 @@ public class OrderItemService {
         return orderItemMapper.toResponse(orderItemRepository.saveOrderItem(orderItem));
     }
 
+    public void deleteOrderItem (String id) {
+        if (!orderItemRepository.existsById(id)) {
+            throw new AppException(ErrorCode.ORDER_ITEM_NOT_FOUND);
+        }
+        orderItemRepository.deleteOrderItem(id);
+    }
+
     public List<OrderItemResponse> getAllByProductId (String productId) {
         if (!productRepository.existsById(productId)) {
             throw new AppException(ErrorCode.PRODUCT_NOT_FOUND);

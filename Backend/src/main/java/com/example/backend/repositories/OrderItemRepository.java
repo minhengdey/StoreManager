@@ -100,6 +100,20 @@ public class OrderItemRepository {
         }
     }
 
+    public void deleteOrderItem (String id) {
+        String sql = "DELETE FROM STOREMANAGER.ORDER_ITEM WHERE ID = ?";
+
+        try (Connection connection = databaseConfig.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            preparedStatement.setString(1, id);
+
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            throw new AppException(ErrorCode.CONNECT_ERROR);
+        }
+    }
+
     public List<OrderItem> getAllByProductId (String productId) {
         String sql = "SELECT * FROM STOREMANAGER.ORDER_ITEM WHERE PRODUCT_ID = ?";
 

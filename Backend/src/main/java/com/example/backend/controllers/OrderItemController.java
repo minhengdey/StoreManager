@@ -43,6 +43,11 @@ public class OrderItemController {
                 .build();
     }
 
+    @DeleteMapping(value = "/{id}")
+    public void deleteOrderItem (@PathVariable("id") String id) {
+        orderItemService.deleteOrderItem(id);
+    }
+
     @GetMapping(value = "/all-by-productId/{productId}")
     public ApiResponse<List<OrderItemResponse>> getAllByProductId (@PathVariable("productId") String productId) {
         return ApiResponse.<List<OrderItemResponse>>builder()
