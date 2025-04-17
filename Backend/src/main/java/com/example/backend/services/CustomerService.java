@@ -13,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -45,5 +47,9 @@ public class CustomerService {
 
     public void deleteCustomer (String id) {
         customerRepository.deleteCustomer(id);
+    }
+
+    public List<CustomerResponse> getAllCustomer () {
+        return customerRepository.getAllCustomer().stream().map(customerMapper::toResponse).toList();
     }
 }

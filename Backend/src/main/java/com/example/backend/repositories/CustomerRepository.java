@@ -13,6 +13,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 @Repository
 @RequiredArgsConstructor
@@ -108,6 +110,30 @@ public class CustomerRepository {
             preparedStatement.setString(1, id);
 
             preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            throw new AppException(ErrorCode.CONNECT_ERROR);
+        }
+    }
+
+    public List<Customer> getAllCustomer () {
+        String sql = "SELECT * FROM STOREMANAGER.CUSTOMER";
+
+        try (Connection connection = databaseConfig.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+            List<Customer> list = new ArrayList<>();
+
+            while (resultSet.next()) {
+                String id = resultSet.getString("id");
+                String name = resultSet.getString("name");
+                String phone = resultSet.getString("phone");
+                String email = resultSet.getString("email");
+
+                list.add(new Customer(id, name, phone, email));
+            }
+
+            return list;
         } catch (SQLException e) {
             throw new AppException(ErrorCode.CONNECT_ERROR);
         }
