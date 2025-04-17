@@ -98,4 +98,18 @@ public class CustomerRepository {
             throw new AppException(ErrorCode.CONNECT_ERROR);
         }
     }
+
+    public void deleteCustomer (String id) {
+        String sql = "DELETE FROM STOREMANAGER.CUSTOMER WHERE ID = ?";
+
+        try (Connection connection = databaseConfig.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            preparedStatement.setString(1, id);
+
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            throw new AppException(ErrorCode.CONNECT_ERROR);
+        }
+    }
 }

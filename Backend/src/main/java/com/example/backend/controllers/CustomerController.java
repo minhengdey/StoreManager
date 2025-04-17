@@ -41,4 +41,9 @@ public class CustomerController {
                 .result(customerService.updateCustomer(request, id))
                 .build();
     }
+
+    @DeleteMapping(value = "/{id}")
+    public void deleteCustomer (@PathVariable("id") String id) {
+        customerService.deleteCustomer(id);
+    }
 }

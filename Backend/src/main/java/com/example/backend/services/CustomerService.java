@@ -42,4 +42,8 @@ public class CustomerService {
         customerMapper.update(customer, request);
         return customerMapper.toResponse(customerRepository.saveCustomer(customer));
     }
+
+    public void deleteCustomer (String id) {
+        customerRepository.deleteCustomer(id);
+    }
 }
