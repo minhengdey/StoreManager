@@ -19,11 +19,13 @@ import java.util.List;
 public class OrderItemController {
     OrderItemService orderItemService;
 
-    @PostMapping(value = "/{productId}")
-    public ApiResponse<OrderItemResponse> addOrderItem (@PathVariable("productId") String productId, @Valid @RequestBody OrderItemRequest request) {
+    @PostMapping(value = "/{productId}/{ordersId}")
+    public ApiResponse<OrderItemResponse> addOrderItem (@PathVariable("productId") String productId,
+                                                        @PathVariable("ordersId") String ordersId,
+                                                        @Valid @RequestBody OrderItemRequest request) {
         return ApiResponse.<OrderItemResponse>builder()
                 .code(1000)
-                .result(orderItemService.addOrderItem(request, productId))
+                .result(orderItemService.addOrderItem(request, productId, ordersId))
                 .build();
     }
 

@@ -4,6 +4,7 @@ import com.example.backend.configs.DatabaseConfig;
 import com.example.backend.enums.ErrorCode;
 import com.example.backend.exceptions.AppException;
 import com.example.backend.models.OrderItem;
+import com.example.backend.models.Orders;
 import com.example.backend.models.Product;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -24,9 +25,14 @@ public class OrderItemRepository {
 
     DatabaseConfig databaseConfig;
     ProductRepository productRepository;
+    OrdersRepository ordersRepository;
 
     public OrderItem addOrderItem (OrderItem orderItem) {
-        String sql = "INSERT INTO STOREMANAGER.ORDER_ITEM (ID, QUANTITY, PRODUCT_ID) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO STOREMANAGER.ORDER_ITEM (ID, QUANTITY, PRODUCT_ID, ORDERS_ID) VALUES (?, ?, ?, ?)";
+        System.out.println(orderItem.getId());
+        System.out.println(orderItem.getQuantity());
+        System.out.println(orderItem.getProduct().getId());
+        System.out.println(orderItem.getOrders().getId());
 
         try (Connection connection = databaseConfig.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
@@ -34,6 +40,7 @@ public class OrderItemRepository {
             preparedStatement.setString(1, orderItem.getId());
             preparedStatement.setInt(2, orderItem.getQuantity());
             preparedStatement.setString(3, orderItem.getProduct().getId());
+            preparedStatement.setString(4, orderItem.getOrders().getId());
 
             preparedStatement.executeUpdate();
 
@@ -72,8 +79,9 @@ public class OrderItemRepository {
             if (resultSet.next()) {
                 Integer quantity = resultSet.getInt("quantity");
                 Product product = productRepository.findById(resultSet.getString("product_id"));
+                Orders orders = ordersRepository.findById(resultSet.getString("orders_id"));
 
-                return new OrderItem(id, quantity, product);
+                return new OrderItem(id, quantity, product, orders);
             } else {
                 throw new AppException(ErrorCode.ORDER_ITEM_NOT_FOUND);
             }
@@ -83,14 +91,15 @@ public class OrderItemRepository {
     }
 
     public OrderItem saveOrderItem (OrderItem orderItem) {
-        String sql = "UPDATE STOREMANAGER.ORDER_ITEM SET QUANTITY = ?, PRODUCT_ID = ? WHERE ID = ?";
+        String sql = "UPDATE STOREMANAGER.ORDER_ITEM SET QUANTITY = ?, PRODUCT_ID = ?, ORDERS_ID = ? WHERE ID = ?";
 
         try (Connection connection = databaseConfig.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
 
             preparedStatement.setInt(1, orderItem.getQuantity());
             preparedStatement.setString(2, orderItem.getProduct().getId());
-            preparedStatement.setString(3, orderItem.getId());
+            preparedStatement.setString(3, orderItem.getOrders().getId());
+            preparedStatement.setString(4, orderItem.getId());
 
             preparedStatement.executeUpdate();
 
@@ -128,8 +137,9 @@ public class OrderItemRepository {
             while (resultSet.next()) {
                 String id = resultSet.getString("id");
                 Integer quantity = resultSet.getInt("quantity");
+                String ordersId = resultSet.getString("orders_id");
 
-                list.add(new OrderItem(id, quantity, productRepository.findById(productId)));
+                list.add(new OrderItem(id, quantity, productRepository.findById(productId), ordersRepository.findById(ordersId)));
             }
 
             return list;

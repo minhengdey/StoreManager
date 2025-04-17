@@ -1,5 +1,6 @@
 package com.example.backend.dto.response;
 
+import com.example.backend.models.Orders;
 import com.example.backend.models.Product;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -14,4 +15,5 @@ public class OrderItemResponse {
     String id;
     Integer quantity;
     Product product;
+    Orders orders;
 }

@@ -6,8 +6,10 @@ import com.example.backend.enums.ErrorCode;
 import com.example.backend.exceptions.AppException;
 import com.example.backend.mappers.OrderItemMapper;
 import com.example.backend.models.OrderItem;
+import com.example.backend.models.Orders;
 import com.example.backend.models.Product;
 import com.example.backend.repositories.OrderItemRepository;
+import com.example.backend.repositories.OrdersRepository;
 import com.example.backend.repositories.ProductRepository;
 import com.example.backend.utils.IdGenerator;
 import lombok.AccessLevel;
@@ -25,9 +27,11 @@ public class OrderItemService {
     OrderItemRepository orderItemRepository;
     OrderItemMapper orderItemMapper;
     ProductRepository productRepository;
+    OrdersRepository ordersRepository;
 
-    public OrderItemResponse addOrderItem (OrderItemRequest request, String productId) {
+    public OrderItemResponse addOrderItem (OrderItemRequest request, String productId, String ordersId) {
         Product product = productRepository.findById(productId);
+        Orders orders = ordersRepository.findById(ordersId);
         if (request.getQuantity() > product.getStockQuantity()) {
             throw new AppException(ErrorCode.ORDER_ITEM_INVALID);
         }
@@ -39,6 +43,8 @@ public class OrderItemService {
             id = IdGenerator.generateId("ORI");
         }
         orderItem.setId(id);
+        orders.getOrderItems().add(orderItem);
+        orderItem.setOrders(orders);
 
         return orderItemMapper.toResponse(orderItemRepository.addOrderItem(orderItem));
     }

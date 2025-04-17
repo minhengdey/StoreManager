@@ -1,5 +1,6 @@
 package com.example.backend.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -13,4 +14,6 @@ public class OrderItem {
     String id;
     Integer quantity;
     Product product;
+    @JsonIgnore
+    Orders orders;
 }
