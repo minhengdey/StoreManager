@@ -86,6 +86,25 @@ public class OrdersRepository {
         }
     }
 
+    public Orders saveOrder (Orders orders) {
+        String sql = "UPDATE STOREMANAGER.ORDERS SET ORDER_DATE = ?, TOTAL_AMOUNT = ?, CUSTOMER_ID = ? WHERE ID = ?";
+
+        try (Connection connection = databaseConfig.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            preparedStatement.setTimestamp(1, Timestamp.valueOf(orders.getOrderDate()));
+            preparedStatement.setFloat(2, orders.getTotalAmount());
+            preparedStatement.setString(3, orders.getCustomer().getId());
+            preparedStatement.setString(4, orders.getId());
+
+            preparedStatement.executeUpdate();
+
+            return orders;
+        } catch (SQLException e) {
+            throw new AppException(ErrorCode.CONNECT_ERROR);
+        }
+    }
+
     public void deleteOrder (String id) {
         String sql = "DELETE FROM STOREMANAGER.ORDERS WHERE ID = ?";
 

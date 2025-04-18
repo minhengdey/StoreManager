@@ -43,8 +43,10 @@ public class OrderItemService {
             id = IdGenerator.generateId("ORI");
         }
         orderItem.setId(id);
+        orders.setTotalAmount(orders.getTotalAmount() + orderItem.getQuantity() * orderItem.getProduct().getPrice());
         orders.getOrderItems().add(orderItem);
         orderItem.setOrders(orders);
+        ordersRepository.saveOrder(orders);
 
         return orderItemMapper.toResponse(orderItemRepository.addOrderItem(orderItem));
     }
