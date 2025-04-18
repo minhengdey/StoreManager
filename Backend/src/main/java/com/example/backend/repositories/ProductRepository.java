@@ -26,6 +26,7 @@ public class ProductRepository {
 
     public Product addProduct (Product product) {
         String sql = "INSERT INTO STOREMANAGER.PRODUCTS (ID, NAME, PRICE, STOCK_QUANTITY) VALUES (?, ?, ?, ?)";
+
         try (Connection connection = databaseConfig.getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
 

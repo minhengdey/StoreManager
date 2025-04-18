@@ -13,6 +13,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,6 +26,7 @@ public class OrdersService {
     OrdersMapper ordersMapper;
     CustomerRepository customerRepository;
 
+    @Transactional
     public OrdersResponse createOrders (String customerId) {
         Customer customer = customerRepository.findById(customerId);
         Orders orders = new Orders();
