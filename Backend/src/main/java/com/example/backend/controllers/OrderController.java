@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping(value = "/orders")
 @RequiredArgsConstructor
@@ -34,5 +36,13 @@ public class OrderController {
     @DeleteMapping(value = "/{id}")
     public void deleteOrder (@PathVariable("id") String id) {
         ordersService.deleteOrders(id);
+    }
+
+    @GetMapping(value = "/all")
+    public ApiResponse<List<OrdersResponse>> getAllOrders () {
+        return ApiResponse.<List<OrdersResponse>>builder()
+                .code(1000)
+                .result(ordersService.getAllOrders())
+                .build();
     }
 }

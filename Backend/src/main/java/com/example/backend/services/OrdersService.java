@@ -15,6 +15,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -48,5 +49,9 @@ public class OrdersService {
             throw new AppException(ErrorCode.ORDER_NOT_FOUND);
         }
         ordersRepository.deleteOrder(id);
+    }
+
+    public List<OrdersResponse> getAllOrders () {
+        return ordersRepository.getAllOrders().stream().map(ordersMapper::toResponse).toList();
     }
 }

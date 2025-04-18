@@ -105,6 +105,46 @@ public class OrdersRepository {
         }
     }
 
+    public List<Orders> getAllOrders () {
+        String sql = "SELECT * FROM STOREMANAGER.ORDERS";
+
+        try (Connection connection = databaseConfig.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+            List<Orders> list = new ArrayList<>();
+
+            while (resultSet.next()) {
+                LocalDateTime orderDate = resultSet.getTimestamp("order_date").toLocalDateTime();
+                Float totalAmount = resultSet.getFloat("total_amount");
+                Customer customer = customerRepository.findById(resultSet.getString("customer_id"));
+
+                String sql1 = "SELECT * FROM STOREMANAGER.ORDER_ITEM WHERE ORDERS_ID = ?";
+                PreparedStatement preparedStatement1 = connection.prepareStatement(sql1);
+
+                preparedStatement1.setString(1, resultSet.getString("id"));
+
+                ResultSet resultSet1 = preparedStatement1.executeQuery();
+                List<OrderItem> list1 = new ArrayList<>();
+
+                while (resultSet1.next()) {
+                    OrderItem orderItem = new OrderItem();
+                    orderItem.setId(resultSet1.getString("id"));
+                    orderItem.setQuantity(resultSet1.getInt("quantity"));
+                    orderItem.setProduct(productRepository.findById(resultSet1.getString("product_id")));
+
+                    list1.add(orderItem);
+                }
+
+                list.add(new Orders(resultSet.getString("id"), orderDate, totalAmount, customer, list1));
+            }
+
+            return list;
+        } catch (SQLException e) {
+            throw new AppException(ErrorCode.CONNECT_ERROR);
+        }
+    }
+
     public void deleteOrder (String id) {
         String sql = "DELETE FROM STOREMANAGER.ORDERS WHERE ID = ?";
 
