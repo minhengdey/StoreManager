@@ -3,16 +3,21 @@ package com.example.backend.services;
 import com.example.backend.dto.request.CustomerRequest;
 import com.example.backend.dto.response.CustomerResponse;
 import com.example.backend.enums.ErrorCode;
+import com.example.backend.enums.FileType;
 import com.example.backend.exceptions.AppException;
 import com.example.backend.mappers.CustomerMapper;
 import com.example.backend.models.Customer;
 import com.example.backend.repositories.CustomerRepository;
+import com.example.backend.utils.ExcelUtility;
+import com.example.backend.utils.FileUtility;
 import com.example.backend.utils.IdGenerator;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @Service
@@ -51,5 +56,11 @@ public class CustomerService {
 
     public List<CustomerResponse> getAllCustomer () {
         return customerRepository.getAllCustomer().stream().map(customerMapper::toResponse).toList();
+    }
+
+    public List<CustomerResponse> saveAll (MultipartFile file) throws IOException {
+//        if (FileUtility.getFileType(file).equals(FileType.EXCEL))
+            List<Customer> list = ExcelUtility.excelToCustomerList(file.getInputStream());
+            return customerRepository.saveAllCustomer(list).stream().map(customerMapper::toResponse).toList();
     }
 }

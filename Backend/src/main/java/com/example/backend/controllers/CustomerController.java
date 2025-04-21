@@ -9,7 +9,9 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -54,6 +56,14 @@ public class CustomerController {
         return ApiResponse.<List<CustomerResponse>>builder()
                 .code(1000)
                 .result(customerService.getAllCustomer())
+                .build();
+    }
+
+    @PostMapping(value = "/excel/upload")
+    public ApiResponse<List<CustomerResponse>> uploadFile (@RequestParam("file")MultipartFile file) throws IOException {
+        return ApiResponse.<List<CustomerResponse>>builder()
+                .code(1000)
+                .result(customerService.saveAll(file))
                 .build();
     }
 }

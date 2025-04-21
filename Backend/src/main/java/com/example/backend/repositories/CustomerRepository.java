@@ -138,4 +138,11 @@ public class CustomerRepository {
             throw new AppException(ErrorCode.CONNECT_ERROR);
         }
     }
+
+    public List<Customer> saveAllCustomer (List<Customer> list) {
+        for (Customer customer : list) {
+            saveCustomer(customer);
+        }
+        return list;
+    }
 }
