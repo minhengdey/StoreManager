@@ -11,6 +11,7 @@ import com.example.backend.repositories.CustomerRepository;
 import com.example.backend.utils.ExcelUtility;
 import com.example.backend.utils.FileUtility;
 import com.example.backend.utils.IdGenerator;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -58,9 +59,9 @@ public class CustomerService {
         return customerRepository.getAllCustomer().stream().map(customerMapper::toResponse).toList();
     }
 
-    public List<CustomerResponse> saveAll (MultipartFile file) throws IOException {
+    public List<CustomerResponse> saveAll (MultipartFile file, HttpServletResponse response) throws IOException {
 //        if (FileUtility.getFileType(file).equals(FileType.EXCEL))
-            List<Customer> list = ExcelUtility.excelToCustomerList(file.getInputStream());
+            List<Customer> list = ExcelUtility.excelToCustomerList(file.getInputStream(), response);
             return customerRepository.saveAllCustomer(list).stream().map(customerMapper::toResponse).toList();
     }
 }

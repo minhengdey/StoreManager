@@ -24,7 +24,8 @@ public enum ErrorCode {
     ORDER_ITEM_INVALID(1008, "Order item invalid", HttpStatus.BAD_REQUEST),
     ORDER_NOT_FOUND(1009, "Order not found", HttpStatus.NOT_FOUND),
     TRANSACTION_NOT_FOUND(1010, "Transaction not found", HttpStatus.NOT_FOUND),
-    TRANSACTION_FAILED(1011, "Transaction failed", HttpStatus.BAD_REQUEST);
+    TRANSACTION_FAILED(1011, "Transaction failed", HttpStatus.BAD_REQUEST),
+    SHEET_NOT_FOUND(1012, "Excel sheet not found", HttpStatus.NOT_FOUND);
 
     int code;
     String message;

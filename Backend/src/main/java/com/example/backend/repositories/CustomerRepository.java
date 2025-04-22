@@ -141,7 +141,7 @@ public class CustomerRepository {
 
     public List<Customer> saveAllCustomer (List<Customer> list) {
         for (Customer customer : list) {
-            saveCustomer(customer);
+            addCustomer(customer);
         }
         return list;
     }

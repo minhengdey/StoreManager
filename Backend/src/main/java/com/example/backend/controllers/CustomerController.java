@@ -4,6 +4,7 @@ import com.example.backend.dto.request.CustomerRequest;
 import com.example.backend.dto.response.ApiResponse;
 import com.example.backend.dto.response.CustomerResponse;
 import com.example.backend.services.CustomerService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -60,10 +61,10 @@ public class CustomerController {
     }
 
     @PostMapping(value = "/excel/upload")
-    public ApiResponse<List<CustomerResponse>> uploadFile (@RequestParam("file")MultipartFile file) throws IOException {
+    public ApiResponse<List<CustomerResponse>> uploadFile (@RequestParam("file")MultipartFile file, HttpServletResponse response) throws IOException {
         return ApiResponse.<List<CustomerResponse>>builder()
                 .code(1000)
-                .result(customerService.saveAll(file))
+                .result(customerService.saveAll(file, response))
                 .build();
     }
 }
