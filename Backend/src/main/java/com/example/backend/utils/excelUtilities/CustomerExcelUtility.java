@@ -1,4 +1,4 @@
-package com.example.backend.utils;
+package com.example.backend.utils.excelUtilities;
 
 import com.example.backend.enums.ErrorCode;
 import com.example.backend.exceptions.AppException;
@@ -15,7 +15,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Pattern;
 
-public class ExcelUtility {
+public class CustomerExcelUtility {
 
     private static final Pattern EMAIL_REGEX = Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
     private static final Pattern PHONE_REGEX = Pattern.compile("^\\d{10}$");

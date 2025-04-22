@@ -1,4 +1,4 @@
-package com.example.backend.utils;
+package com.example.backend.utils.csvUtilities;
 
 import com.example.backend.models.Customer;
 import jakarta.servlet.ServletOutputStream;
@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-public class CsvUtility {
+public class CustomerCsvUtility {
     private static final Pattern EMAIL_REGEX = Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
     private static final Pattern PHONE_REGEX = Pattern.compile("^\\d{10}$");
 

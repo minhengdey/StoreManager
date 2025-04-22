@@ -173,4 +173,11 @@ public class ProductRepository {
             throw new AppException(ErrorCode.CONNECT_ERROR);
         }
     }
+
+    public List<Product> saveAll (List<Product> list) {
+        for (Product product : list) {
+            addProduct(product);
+        }
+        return list;
+    }
 }

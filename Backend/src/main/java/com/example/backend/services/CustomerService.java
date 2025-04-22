@@ -8,8 +8,8 @@ import com.example.backend.exceptions.AppException;
 import com.example.backend.mappers.CustomerMapper;
 import com.example.backend.models.Customer;
 import com.example.backend.repositories.CustomerRepository;
-import com.example.backend.utils.CsvUtility;
-import com.example.backend.utils.ExcelUtility;
+import com.example.backend.utils.csvUtilities.CustomerCsvUtility;
+import com.example.backend.utils.excelUtilities.CustomerExcelUtility;
 import com.example.backend.utils.FileUtility;
 import com.example.backend.utils.IdGenerator;
 import jakarta.servlet.http.HttpServletResponse;
@@ -60,12 +60,12 @@ public class CustomerService {
         return customerRepository.getAllCustomer().stream().map(customerMapper::toResponse).toList();
     }
 
-    public List<CustomerResponse> saveAll (MultipartFile file, HttpServletResponse response) throws IOException {
+    public List<CustomerResponse> saveAllFromFile (MultipartFile file, HttpServletResponse response) throws IOException {
         if (FileUtility.getFileType(file).equals(FileType.EXCEL)) {
-            List<Customer> list = ExcelUtility.excelToCustomerList(file.getInputStream(), response);
+            List<Customer> list = CustomerExcelUtility.excelToCustomerList(file.getInputStream(), response);
             return customerRepository.saveAllCustomer(list).stream().map(customerMapper::toResponse).toList();
         } else if (FileUtility.getFileType(file).equals(FileType.CSV)) {
-            List<Customer> list = CsvUtility.csvToCustomerList(file.getInputStream(), response);
+            List<Customer> list = CustomerCsvUtility.csvToCustomerList(file.getInputStream(), response);
             return customerRepository.saveAllCustomer(list).stream().map(customerMapper::toResponse).toList();
         } else {
             throw new AppException(ErrorCode.UNKNOWN_FILE_TYPE);

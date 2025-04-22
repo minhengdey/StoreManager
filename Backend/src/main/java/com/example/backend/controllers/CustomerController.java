@@ -60,11 +60,11 @@ public class CustomerController {
                 .build();
     }
 
-    @PostMapping(value = "/excel/upload")
+    @PostMapping(value = "/upload")
     public ApiResponse<List<CustomerResponse>> uploadFile (@RequestParam("file")MultipartFile file, HttpServletResponse response) throws IOException {
         return ApiResponse.<List<CustomerResponse>>builder()
                 .code(1000)
-                .result(customerService.saveAll(file, response))
+                .result(customerService.saveAllFromFile(file, response))
                 .build();
     }
 }
