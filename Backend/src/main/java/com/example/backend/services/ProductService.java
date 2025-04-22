@@ -10,6 +10,7 @@ import com.example.backend.models.Product;
 import com.example.backend.repositories.ProductRepository;
 import com.example.backend.utils.FileUtility;
 import com.example.backend.utils.IdGenerator;
+import com.example.backend.utils.csvUtilities.ProductCsvUtility;
 import com.example.backend.utils.excelUtilities.ProductExcelUtility;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
@@ -70,11 +71,14 @@ public class ProductService {
     }
 
     public List<ProductResponse> saveAllFromFile (MultipartFile file, HttpServletResponse response) throws IOException {
-//        if (FileUtility.getFileType(file).equals(FileType.EXCEL)) {
+        if (FileUtility.getFileType(file).equals(FileType.EXCEL)) {
             List<Product> list = ProductExcelUtility.excelToProductList(file.getInputStream(), response);
             return productRepository.saveAll(list).stream().map(productMapper::toResponse).toList();
-//        } else if (FileUtility.getFileType(file).equals(FileType.CSV)) {
-//
-//        }
+        } else if (FileUtility.getFileType(file).equals(FileType.CSV)) {
+            List<Product> list = ProductCsvUtility.csvToProductList(file.getInputStream(), response);
+            return productRepository.saveAll(list).stream().map(productMapper::toResponse).toList();
+        } else {
+            throw new AppException(ErrorCode.UNKNOWN_FILE_TYPE);
+        }
     }
 }

@@ -56,7 +56,7 @@ public class ProductExcelUtility {
                         isValid &= (product.getPrice() > 0);
                     } else {
                         product.setStockQuantity((int) currentCell.getNumericCellValue());
-                        isValid &= (product.getStockQuantity() >= 0);
+                        isValid &= (product.getStockQuantity() > 0);
                     }
 
                     ++ cellNumbers;

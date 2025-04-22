@@ -20,8 +20,7 @@ public class CustomerCsvUtility {
 
     public static List<Customer> csvToCustomerList (InputStream inputStream, HttpServletResponse response) {
         try (BufferedReader bReader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
-             CSVParser csvParser = new CSVParser(bReader,
-                     CSVFormat.DEFAULT.withFirstRecordAsHeader().withIgnoreHeaderCase().withTrim())) {
+             CSVParser csvParser = new CSVParser(bReader, CSVFormat.DEFAULT.withFirstRecordAsHeader().withIgnoreHeaderCase().withTrim())) {
             List<Customer> valid = new ArrayList<>();
             List<Customer> invalid = new ArrayList<>();
             Iterable<CSVRecord> csvRecords = csvParser.getRecords();
@@ -33,8 +32,8 @@ public class CustomerCsvUtility {
                 customer.setPhone(csvRecord.get("PHONE"));
                 customer.setEmail(csvRecord.get("EMAIL"));
 
-                if (validateId(customer.getId()) && validateName(customer.getName()) && validatePhone(customer.getPhone())
-                        && validateEmail(customer.getEmail())) {
+                if (isValidateId(customer.getId()) && isValidateName(customer.getName()) && isValidatePhone(customer.getPhone())
+                        && isValidateEmail(customer.getEmail())) {
                     valid.add(customer);
                 } else {
                     invalid.add(customer);
@@ -48,19 +47,19 @@ public class CustomerCsvUtility {
         }
     }
 
-    public static boolean validateId (String id) {
+    public static boolean isValidateId (String id) {
         return id.length() == 10 && id.startsWith("CTM-");
     }
 
-    public static boolean validateName (String name) {
+    public static boolean isValidateName (String name) {
         return name.length() >= 2 && name.length() <= 30;
     }
 
-    public static boolean validatePhone (String phone) {
+    public static boolean isValidatePhone (String phone) {
         return PHONE_REGEX.matcher(phone).matches();
     }
 
-    public static boolean validateEmail (String email) {
+    public static boolean isValidateEmail (String email) {
         return EMAIL_REGEX.matcher(email).matches();
     }
 

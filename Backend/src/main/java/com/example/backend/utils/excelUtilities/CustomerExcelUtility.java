@@ -52,16 +52,16 @@ public class CustomerExcelUtility {
                 while (cells.hasNext()) {
                     Cell currentCell = cells.next();
                     if (cellNumbers == 0) {
-                        isValid &= validateId(currentCell);
+                        isValid &= isValidateId(currentCell);
                         customer.setId(currentCell.getStringCellValue());
                     } else if (cellNumbers == 1) {
-                        isValid &= validateName(currentCell);
+                        isValid &= isValidateName(currentCell);
                         customer.setName(currentCell.getStringCellValue());
                     } else if (cellNumbers == 2) {
-                        isValid &= validatePhone(currentCell);
+                        isValid &= isValidatePhone(currentCell);
                         customer.setPhone(currentCell.getStringCellValue());
                     } else {
-                        isValid &= validateEmail(currentCell);
+                        isValid &= isValidateEmail(currentCell);
                         customer.setEmail(currentCell.getStringCellValue());
                     }
                     ++ cellNumbers;
@@ -81,7 +81,7 @@ public class CustomerExcelUtility {
         }
     }
 
-    public static boolean validateId (Cell cell) {
+    public static boolean isValidateId (Cell cell) {
         if (!cell.getCellType().equals(CellType.STRING) || cell.getStringCellValue().length() != 10) {
             return false;
         }
@@ -89,15 +89,15 @@ public class CustomerExcelUtility {
         return s.equals("CTM-");
     }
 
-    public static boolean validateName (Cell cell) {
+    public static boolean isValidateName (Cell cell) {
         return  !(!cell.getCellType().equals(CellType.STRING) || cell.getStringCellValue().length() < 2 || cell.getStringCellValue().length() > 30);
     }
 
-    public static boolean validatePhone (Cell cell) {
+    public static boolean isValidatePhone (Cell cell) {
         return (cell.getCellType().equals(CellType.STRING) && PHONE_REGEX.matcher(cell.getStringCellValue()).matches());
     }
 
-    public static boolean validateEmail (Cell cell) {
+    public static boolean isValidateEmail (Cell cell) {
         return (cell.getCellType().equals(CellType.STRING) && EMAIL_REGEX.matcher(cell.getStringCellValue()).matches());
     }
 
