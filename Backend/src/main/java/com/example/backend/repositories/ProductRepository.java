@@ -176,7 +176,11 @@ public class ProductRepository {
 
     public List<Product> saveAll (List<Product> list) {
         for (Product product : list) {
-            addProduct(product);
+            if (existsById(product.getId())) {
+                saveProduct(product);
+            } else {
+                addProduct(product);
+            }
         }
         return list;
     }

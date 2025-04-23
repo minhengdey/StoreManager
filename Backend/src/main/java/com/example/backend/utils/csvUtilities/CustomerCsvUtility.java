@@ -33,8 +33,8 @@ public class CustomerCsvUtility {
                 customer.setPhone(csvRecord.get("PHONE"));
                 customer.setEmail(csvRecord.get("EMAIL"));
 
-                if (isValidateId(customer.getId()) && isValidateName(customer.getName()) && isValidatePhone(customer.getPhone())
-                        && isValidateEmail(customer.getEmail())) {
+                if (isValidId(customer.getId()) && isValidName(customer.getName()) && isValidPhone(customer.getPhone())
+                        && isValidEmail(customer.getEmail())) {
                     valid.add(customer);
                 } else {
                     invalid.add(customer);
@@ -48,19 +48,19 @@ public class CustomerCsvUtility {
         }
     }
 
-    public static boolean isValidateId (String id) {
+    public static boolean isValidId (String id) {
         return id.length() == 10 && id.startsWith("CTM-");
     }
 
-    public static boolean isValidateName (String name) {
+    public static boolean isValidName (String name) {
         return name.length() >= 2 && name.length() <= 30;
     }
 
-    public static boolean isValidatePhone (String phone) {
+    public static boolean isValidPhone (String phone) {
         return PHONE_REGEX.matcher(phone).matches();
     }
 
-    public static boolean isValidateEmail (String email) {
+    public static boolean isValidEmail (String email) {
         return EMAIL_REGEX.matcher(email).matches();
     }
 

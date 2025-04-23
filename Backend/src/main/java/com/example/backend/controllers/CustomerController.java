@@ -61,7 +61,7 @@ public class CustomerController {
     }
 
     @PostMapping(value = "/upload")
-    public void uploadFile (@RequestParam("file")MultipartFile file, HttpServletResponse response) throws IOException {
+    public void uploadFile (@RequestParam("file") MultipartFile file, HttpServletResponse response) throws IOException {
         customerService.saveAllFromFile(file, response);
     }
 }

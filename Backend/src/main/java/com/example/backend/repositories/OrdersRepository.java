@@ -174,4 +174,15 @@ public class OrdersRepository {
             throw new AppException(ErrorCode.CONNECT_ERROR);
         }
     }
+
+    public List<Orders> saveAll (List<Orders> list) {
+        for (Orders orders : list) {
+            if (existsById(orders.getId())) {
+                saveOrder(orders);
+            } else {
+                addOrders(orders);
+            }
+        }
+        return list;
+    }
 }

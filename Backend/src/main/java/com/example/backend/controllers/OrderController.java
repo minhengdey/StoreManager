@@ -3,11 +3,14 @@ package com.example.backend.controllers;
 import com.example.backend.dto.response.ApiResponse;
 import com.example.backend.dto.response.OrdersResponse;
 import com.example.backend.services.OrdersService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -44,5 +47,10 @@ public class OrderController {
                 .code(1000)
                 .result(ordersService.getAllOrders())
                 .build();
+    }
+
+    @PostMapping(value = "/upload")
+    public void uploadFile (@RequestParam("file")MultipartFile file, HttpServletResponse response) throws IOException {
+        ordersService.saveAllFromFile(file, response);
     }
 }

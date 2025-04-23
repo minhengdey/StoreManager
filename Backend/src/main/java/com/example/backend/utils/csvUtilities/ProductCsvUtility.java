@@ -30,7 +30,7 @@ public class ProductCsvUtility {
                 product.setPrice(Float.valueOf(csvRecord.get("PRICE")));
                 product.setStockQuantity(Integer.valueOf(csvRecord.get("STOCK_QUANTITY")));
 
-                if (isValidateId(product.getId()) && isValidateName(product.getName()) && product.getPrice() > 0 && product.getStockQuantity() > 0) {
+                if (isValidId(product.getId()) && isValidName(product.getName()) && product.getPrice() > 0 && product.getStockQuantity() > 0) {
                     valid.add(product);
                 } else {
                     invalid.add(product);
@@ -44,11 +44,11 @@ public class ProductCsvUtility {
         }
     }
 
-    public static boolean isValidateId (String id) {
+    public static boolean isValidId (String id) {
         return id.length() == 10 && id.startsWith("PRD-");
     }
 
-    public static boolean isValidateName (String name) {
+    public static boolean isValidName (String name) {
         return name.length() >= 2 && name.length() <= 30;
     }
 

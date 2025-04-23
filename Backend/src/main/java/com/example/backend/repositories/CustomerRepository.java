@@ -141,7 +141,11 @@ public class CustomerRepository {
 
     public List<Customer> saveAllCustomer (List<Customer> list) {
         for (Customer customer : list) {
-            addCustomer(customer);
+            if (existsById(customer.getId())) {
+                saveCustomer(customer);
+            } else {
+                addCustomer(customer);
+            }
         }
         return list;
     }
