@@ -4,12 +4,15 @@ import com.example.backend.dto.request.OrderItemRequest;
 import com.example.backend.dto.response.ApiResponse;
 import com.example.backend.dto.response.OrderItemResponse;
 import com.example.backend.services.OrderItemService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -56,5 +59,10 @@ public class OrderItemController {
                 .code(1000)
                 .result(orderItemService.getAllByProductId(productId))
                 .build();
+    }
+
+    @PostMapping(value = "/upload")
+    public void uploadFile (@RequestParam("file")MultipartFile file, HttpServletResponse response) throws IOException {
+        orderItemService.saveAllFromFile(file, response);
     }
 }

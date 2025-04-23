@@ -3,6 +3,7 @@ package com.example.backend.services;
 import com.example.backend.dto.request.OrderItemRequest;
 import com.example.backend.dto.response.OrderItemResponse;
 import com.example.backend.enums.ErrorCode;
+import com.example.backend.enums.FileType;
 import com.example.backend.exceptions.AppException;
 import com.example.backend.mappers.OrderItemMapper;
 import com.example.backend.models.OrderItem;
@@ -11,7 +12,9 @@ import com.example.backend.models.Product;
 import com.example.backend.repositories.OrderItemRepository;
 import com.example.backend.repositories.OrdersRepository;
 import com.example.backend.repositories.ProductRepository;
+import com.example.backend.utils.FileUtility;
 import com.example.backend.utils.IdGenerator;
+import com.example.backend.utils.excelUtilities.OrderItemExcelUtility;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +22,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @Service
@@ -78,5 +82,20 @@ public class OrderItemService {
             throw new AppException(ErrorCode.PRODUCT_NOT_FOUND);
         }
         return orderItemRepository.getAllByProductId(productId).stream().map(orderItemMapper::toResponse).toList();
+    }
+
+    public void saveAllFromFile (MultipartFile file, HttpServletResponse response) throws IOException {
+        if (FileUtility.getFileType(file).equals(FileType.EXCEL)) {
+            List<OrderItem> list = OrderItemExcelUtility.excelToOrderItemList(file.getInputStream(), response);
+            for (OrderItem orderItem : list) {
+                orderItem.setProduct(productRepository.findById(orderItem.getProduct().getId()));
+                Orders orders = ordersRepository.findById(orderItem.getOrders().getId());
+                orders.setTotalAmount(orders.getTotalAmount() + orderItem.getQuantity() * orderItem.getProduct().getPrice());
+                orders.getOrderItems().add(orderItem);
+                orderItem.setOrders(orders);
+                ordersRepository.saveOrder(orders);
+            }
+            orderItemRepository.saveAll(list);
+        }
     }
 }

@@ -61,7 +61,7 @@ public class OrderItemExcelUtility {
                         orderItem.setProduct(new Product());
                         orderItem.getProduct().setId(currentCell.getStringCellValue());
                     } else {
-//                        isValid &=
+                        isValid &= OrdersExcelUtility.isValidId(currentCell);
                         orderItem.setOrders(new Orders());
                         orderItem.getOrders().setId(currentCell.getStringCellValue());
                     }

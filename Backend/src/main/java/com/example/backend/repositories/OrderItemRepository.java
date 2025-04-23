@@ -147,4 +147,15 @@ public class OrderItemRepository {
             throw new AppException(ErrorCode.CONNECT_ERROR);
         }
     }
+
+    public List<OrderItem> saveAll (List<OrderItem> list) {
+        for (OrderItem orderItem : list) {
+            if (existsById(orderItem.getId())) {
+                saveOrderItem(orderItem);
+            } else {
+                addOrderItem(orderItem);
+            }
+        }
+        return list;
+    }
 }
