@@ -70,13 +70,13 @@ public class ProductService {
         return productRepository.getAllProduct().stream().map(productMapper::toResponse).toList();
     }
 
-    public List<ProductResponse> saveAllFromFile (MultipartFile file, HttpServletResponse response) throws IOException {
+    public void saveAllFromFile (MultipartFile file, HttpServletResponse response) throws IOException {
         if (FileUtility.getFileType(file).equals(FileType.EXCEL)) {
             List<Product> list = ProductExcelUtility.excelToProductList(file.getInputStream(), response);
-            return productRepository.saveAll(list).stream().map(productMapper::toResponse).toList();
+            productRepository.saveAll(list);
         } else if (FileUtility.getFileType(file).equals(FileType.CSV)) {
             List<Product> list = ProductCsvUtility.csvToProductList(file.getInputStream(), response);
-            return productRepository.saveAll(list).stream().map(productMapper::toResponse).toList();
+            productRepository.saveAll(list);
         } else {
             throw new AppException(ErrorCode.UNKNOWN_FILE_TYPE);
         }

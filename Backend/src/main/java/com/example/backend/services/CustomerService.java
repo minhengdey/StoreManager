@@ -60,13 +60,13 @@ public class CustomerService {
         return customerRepository.getAllCustomer().stream().map(customerMapper::toResponse).toList();
     }
 
-    public List<CustomerResponse> saveAllFromFile (MultipartFile file, HttpServletResponse response) throws IOException {
+    public void saveAllFromFile (MultipartFile file, HttpServletResponse response) throws IOException {
         if (FileUtility.getFileType(file).equals(FileType.EXCEL)) {
             List<Customer> list = CustomerExcelUtility.excelToCustomerList(file.getInputStream(), response);
-            return customerRepository.saveAllCustomer(list).stream().map(customerMapper::toResponse).toList();
+            customerRepository.saveAllCustomer(list);
         } else if (FileUtility.getFileType(file).equals(FileType.CSV)) {
             List<Customer> list = CustomerCsvUtility.csvToCustomerList(file.getInputStream(), response);
-            return customerRepository.saveAllCustomer(list).stream().map(customerMapper::toResponse).toList();
+            customerRepository.saveAllCustomer(list);
         } else {
             throw new AppException(ErrorCode.UNKNOWN_FILE_TYPE);
         }

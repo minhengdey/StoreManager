@@ -68,10 +68,7 @@ public class ProductController {
     }
 
     @PostMapping(value = "/upload")
-    public ApiResponse<List<ProductResponse>> uploadFile (@RequestParam("file")MultipartFile file, HttpServletResponse response) throws IOException {
-        return ApiResponse.<List<ProductResponse>>builder()
-                .code(1000)
-                .result(productService.saveAllFromFile(file, response))
-                .build();
+    public void uploadFile (@RequestParam("file")MultipartFile file, HttpServletResponse response) throws IOException {
+        productService.saveAllFromFile(file, response);
     }
 }
