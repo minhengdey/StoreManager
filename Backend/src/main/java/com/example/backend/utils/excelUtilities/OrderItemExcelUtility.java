@@ -6,6 +6,8 @@ import com.example.backend.models.OrderItem;
 import com.example.backend.models.Orders;
 import com.example.backend.models.Product;
 import com.example.backend.repositories.OrderItemRepository;
+import com.example.backend.repositories.OrdersRepository;
+import com.example.backend.repositories.ProductRepository;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
@@ -26,8 +28,10 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class OrderItemExcelUtility {
     OrderItemRepository orderItemRepository;
-    ProductExcelUtility productExcelUtility;
-    OrdersExcelUtility ordersExcelUtility;
+    ProductRepository productRepository;
+    OrdersRepository ordersRepository;
+
+    ArrayList<boolean[]> marks = new ArrayList<>();
 
     public List<OrderItem> excelToOrderItemList (InputStream inputStream, HttpServletResponse response) {
         try {
@@ -57,27 +61,30 @@ public class OrderItemExcelUtility {
                 OrderItem orderItem = new OrderItem();
                 int cellNumbers = 0;
                 boolean isValid = true;
+                boolean[] cellMark = new boolean[4];
 
                 while (cells.hasNext()) {
                     Cell currentCell = cells.next();
 
                     if (cellNumbers == 0) {
-                        isValid &= isValidId(currentCell);
+                        cellMark[cellNumbers] = isValidId(currentCell);
                         orderItem.setId(currentCell.getStringCellValue());
                     } else if (cellNumbers == 1) {
-                        isValid &= isValidQuantity(currentCell);
+                        cellMark[cellNumbers] = isValidQuantity(currentCell);
                         orderItem.setQuantity((int) currentCell.getNumericCellValue());
                     } else if (cellNumbers == 2) {
-                        isValid &= productExcelUtility.isValidId(currentCell);
+                        cellMark[cellNumbers] = isValidProductId(currentCell);
                         orderItem.setProduct(new Product());
                         orderItem.getProduct().setId(currentCell.getStringCellValue());
                     } else {
-                        isValid &= ordersExcelUtility.isValidId(currentCell);
+                        cellMark[cellNumbers] = isValidOrdersId(currentCell);
                         orderItem.setOrders(new Orders());
                         orderItem.getOrders().setId(currentCell.getStringCellValue());
                     }
+                    isValid &= cellMark[cellNumbers];
                     ++ cellNumbers;
                 }
+                marks.add(cellMark);
 
                 if (isValid) {
                     valid.add(orderItem);
@@ -98,11 +105,27 @@ public class OrderItemExcelUtility {
             return false;
         }
         String s = cell.getStringCellValue().substring(0, 4);
-        return s.equals("ORI-");
+        return s.equals("ORI-") && !orderItemRepository.existsById(cell.getStringCellValue());
     }
 
     public boolean isValidQuantity (Cell cell) {
         return (cell.getCellType().equals(CellType.NUMERIC) && cell.getNumericCellValue() > 0);
+    }
+
+    public boolean isValidProductId (Cell cell) {
+        if (!cell.getCellType().equals(CellType.STRING) || cell.getStringCellValue().length() != 10) {
+            return false;
+        }
+        String s = cell.getStringCellValue().substring(0, 4);
+        return s.equals("PRD-") && productRepository.existsById(cell.getStringCellValue());
+    }
+
+    public boolean isValidOrdersId (Cell cell) {
+        if (!cell.getCellType().equals(CellType.STRING) || cell.getStringCellValue().length() != 10) {
+            return false;
+        }
+        String s = cell.getStringCellValue().substring(0, 4);
+        return s.equals("ORD-") && ordersRepository.existsById(cell.getStringCellValue());
     }
 
     public void exportInvalidList (HttpServletResponse response, List<OrderItem> list) {
@@ -114,14 +137,23 @@ public class OrderItemExcelUtility {
         header.createCell(1).setCellValue("QUANTITY");
         header.createCell(2).setCellValue("PRODUCT_ID");
         header.createCell(3).setCellValue("ORDERS_ID");
+        CellStyle cellStyle = workbook.createCellStyle();
+        cellStyle.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
+        cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
-        int rowNumbers = 1;
+        int rowNumbers = 0;
         for (OrderItem orderItem : list) {
-            Row row = sheet.createRow(rowNumbers ++);
+            Row row = sheet.createRow(rowNumbers + 1);
             row.createCell(0).setCellValue(orderItem.getId());
             row.createCell(1).setCellValue(orderItem.getQuantity());
             row.createCell(2).setCellValue(orderItem.getProduct().getId());
             row.createCell(3).setCellValue(orderItem.getOrders().getId());
+            for (int i = 0; i < 4; ++ i) {
+                if (!marks.get(rowNumbers)[i]) {
+                    row.getCell(i).setCellStyle(cellStyle);
+                }
+            }
+            ++ rowNumbers;
         }
 
         for (int i = 0; i < 4; ++ i) {
