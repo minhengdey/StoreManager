@@ -50,10 +50,10 @@ public class CustomerController {
     }
 
     @GetMapping(value = "/all")
-    public ApiResponse<List<CustomerResponse>> getAllCustomer () {
+    public ApiResponse<List<CustomerResponse>> getAllCustomer (@RequestParam("page") int page, @RequestParam("pageSize") int pageSize) {
         return ApiResponse.<List<CustomerResponse>>builder()
                 .code(1000)
-                .result(customerService.getAllCustomer())
+                .result(customerService.getAllCustomer(page, pageSize))
                 .build();
     }
 }
