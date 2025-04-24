@@ -59,7 +59,7 @@ public class ProductService {
         productRepository.deleteProduct(id);
     }
 
-    public List<ProductResponse> getAllProduct () {
-        return productRepository.getAllProduct().stream().map(productMapper::toResponse).toList();
+    public List<ProductResponse> getAllProduct (int page, int pageSize) {
+        return productRepository.getAllProduct(page, pageSize).stream().map(productMapper::toResponse).toList();
     }
 }
