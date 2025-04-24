@@ -37,7 +37,6 @@ public class CustomerCsv {
             Iterable<CSVRecord> csvRecords = csvParser.getRecords();
 
             for (CSVRecord csvRecord : csvRecords) {
-                boolean[] cellMark = new boolean[4];
                 Customer customer = new Customer();
 
                 customer.setId(csvRecord.get("ID"));
