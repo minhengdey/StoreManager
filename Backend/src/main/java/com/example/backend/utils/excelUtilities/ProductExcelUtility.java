@@ -24,6 +24,7 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class ProductExcelUtility {
     ProductRepository productRepository;
+    ArrayList<boolean[]> marks = new ArrayList<>();
 
     public List<Product> excelToProductList (InputStream inputStream, HttpServletResponse response) {
         try {
@@ -50,26 +51,30 @@ public class ProductExcelUtility {
                 Iterator<Cell> cells = currentRow.iterator();
                 int cellNumbers = 0;
                 boolean isValid = true;
+                boolean[] cellMark = new boolean[4];
                 Product product = new Product();
 
                 while (cells.hasNext()) {
                     Cell currentCell = cells.next();
                     if (cellNumbers == 0) {
-                        isValid &= isValidId(currentCell);
+                        cellMark[cellNumbers] = isValidId(currentCell);
                         product.setId(currentCell.getStringCellValue());
                     } else if (cellNumbers == 1) {
-                        isValid &= isValidName(currentCell);
+                        cellMark[cellNumbers] = isValidName(currentCell);
                         product.setName(currentCell.getStringCellValue());
                     } else if (cellNumbers == 2) {
                         product.setPrice((float) currentCell.getNumericCellValue());
-                        isValid &= (product.getPrice() > 0);
+                        cellMark[cellNumbers] = (product.getPrice() > 0);
                     } else {
                         product.setStockQuantity((int) currentCell.getNumericCellValue());
-                        isValid &= (product.getStockQuantity() > 0);
+                        cellMark[cellNumbers] = (product.getStockQuantity() > 0);
                     }
 
+                    isValid &= cellMark[cellNumbers];
                     ++ cellNumbers;
                 }
+                marks.add(cellMark);
+
                 if (isValid) {
                     valid.add(product);
                 } else {
@@ -89,7 +94,7 @@ public class ProductExcelUtility {
             return false;
         }
         String s = cell.getStringCellValue().substring(0, 4);
-        return s.equals("PRD-");
+        return s.equals("PRD-") && !productRepository.existsById(cell.getStringCellValue());
     }
 
     public boolean isValidName (Cell cell) {
@@ -105,14 +110,23 @@ public class ProductExcelUtility {
         header.createCell(1).setCellValue("NAME");
         header.createCell(2).setCellValue("PRICE");
         header.createCell(3).setCellValue("STOCK_QUANTITY");
+        CellStyle cellStyle = workbook.createCellStyle();
+        cellStyle.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
+        cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
-        int rowNumbers = 1;
+        int rowNumbers = 0;
         for (Product product : list) {
-            Row row = sheet.createRow(rowNumbers ++);
+            Row row = sheet.createRow(rowNumbers + 1);
             row.createCell(0).setCellValue(product.getId());
             row.createCell(1).setCellValue(product.getName());
             row.createCell(2).setCellValue(product.getPrice());
             row.createCell(3).setCellValue(product.getStockQuantity());
+            for (int i = 0; i < 4; ++ i) {
+                if (!marks.get(rowNumbers)[i]) {
+                    row.getCell(i).setCellStyle(cellStyle);
+                }
+            }
+            ++ rowNumbers;
         }
 
         for (int i = 0; i < 4; i++) {
