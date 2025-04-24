@@ -11,6 +11,7 @@ import com.example.backend.repositories.CustomerRepository;
 import com.example.backend.repositories.OrdersRepository;
 import com.example.backend.utils.FileUtility;
 import com.example.backend.utils.IdGenerator;
+import com.example.backend.utils.csvUtilities.OrdersCsvUtility;
 import com.example.backend.utils.excelUtilities.OrdersExcelUtility;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
@@ -32,6 +33,7 @@ public class OrdersService {
     OrdersMapper ordersMapper;
     CustomerRepository customerRepository;
     OrdersExcelUtility ordersExcelUtility;
+    OrdersCsvUtility ordersCsvUtility;
 
     @Transactional
     public OrdersResponse createOrders (String customerId) {
@@ -71,6 +73,14 @@ public class OrdersService {
                 orders.setCustomer(customerRepository.findById(orders.getCustomer().getId()));
             }
             ordersRepository.saveAll(list);
+        } else if (FileUtility.getFileType(file).equals(FileType.CSV)) {
+            List<Orders> list = ordersCsvUtility.csvToOrderList(file.getInputStream(), response);
+            for (Orders orders : list) {
+                orders.setCustomer(customerRepository.findById(orders.getCustomer().getId()));
+            }
+            ordersRepository.saveAll(list);
+        } else {
+            throw new AppException(ErrorCode.UNKNOWN_FILE_TYPE);
         }
     }
 }
