@@ -123,13 +123,16 @@ public class OrderItemRepository {
         }
     }
 
-    public List<OrderItem> getAllByProductId (String productId) {
-        String sql = "SELECT * FROM STOREMANAGER.ORDER_ITEM WHERE PRODUCT_ID = ?";
+    public List<OrderItem> getAllByProductId (String productId, int page, int pageSize) {
+        String sql = "SELECT * FROM STOREMANAGER.ORDER_ITEM WHERE PRODUCT_ID = ? OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        int offset = (page - 1) * pageSize;
 
         try (Connection connection = databaseConfig.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
 
             preparedStatement.setString(1, productId);
+            preparedStatement.setInt(2, offset);
+            preparedStatement.setInt(3, pageSize);
 
             List<OrderItem> list = new ArrayList<>();
             ResultSet resultSet = preparedStatement.executeQuery();

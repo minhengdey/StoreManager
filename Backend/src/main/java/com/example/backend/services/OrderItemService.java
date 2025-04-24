@@ -71,10 +71,10 @@ public class OrderItemService {
         orderItemRepository.deleteOrderItem(id);
     }
 
-    public List<OrderItemResponse> getAllByProductId (String productId) {
+    public List<OrderItemResponse> getAllByProductId (String productId, int page, int pageSize) {
         if (!productRepository.existsById(productId)) {
             throw new AppException(ErrorCode.PRODUCT_NOT_FOUND);
         }
-        return orderItemRepository.getAllByProductId(productId).stream().map(orderItemMapper::toResponse).toList();
+        return orderItemRepository.getAllByProductId(productId, page, pageSize).stream().map(orderItemMapper::toResponse).toList();
     }
 }

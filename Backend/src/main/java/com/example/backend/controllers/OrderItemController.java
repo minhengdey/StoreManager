@@ -51,10 +51,11 @@ public class OrderItemController {
     }
 
     @GetMapping(value = "/all-by-productId/{productId}")
-    public ApiResponse<List<OrderItemResponse>> getAllByProductId (@PathVariable("productId") String productId) {
+    public ApiResponse<List<OrderItemResponse>> getAllByProductId (@PathVariable("productId") String productId, @RequestParam("page") int page,
+                                                                   @RequestParam("pageSize") int pageSize) {
         return ApiResponse.<List<OrderItemResponse>>builder()
                 .code(1000)
-                .result(orderItemService.getAllByProductId(productId))
+                .result(orderItemService.getAllByProductId(productId, page, pageSize))
                 .build();
     }
 }
