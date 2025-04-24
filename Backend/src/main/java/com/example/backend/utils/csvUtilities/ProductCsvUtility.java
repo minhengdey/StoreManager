@@ -35,8 +35,8 @@ public class ProductCsvUtility {
 
             for (CSVRecord csvRecord : csvRecords) {
                 Product product = new Product();
-                product.setId(csvRecord.get("ID"));
-                product.setName(csvRecord.get("NAME"));
+                product.setId(csvRecord.get("ID") + ((isValidId(csvRecord.get("ID")) ? "" : "*")));
+                product.setName(csvRecord.get("NAME") + ((isValidName(csvRecord.get("NAME")) ? "" : "*")));
                 product.setPrice(Float.valueOf(csvRecord.get("PRICE")));
                 product.setStockQuantity(Integer.valueOf(csvRecord.get("STOCK_QUANTITY")));
 
@@ -55,7 +55,7 @@ public class ProductCsvUtility {
     }
 
     public boolean isValidId (String id) {
-        return id.length() == 10 && id.startsWith("PRD-");
+        return id.length() == 10 && id.startsWith("PRD-") && !productRepository.existsById(id);
     }
 
     public boolean isValidName (String name) {
@@ -70,7 +70,8 @@ public class ProductCsvUtility {
              OutputStreamWriter writer = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
              CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader("ID", "NAME", "PRICE", "STOCK_QUANTITY"));) {
             for (Product product : list) {
-                csvPrinter.printRecord(product.getId(), product.getName(), product.getPrice(), product.getStockQuantity());
+                csvPrinter.printRecord(product.getId(), product.getName(), product.getPrice() + (product.getPrice() > 0 ? "" : "*"),
+                        product.getStockQuantity() + (product.getStockQuantity() > 0 ? "" : "*"));
             }
 
             csvPrinter.flush();
