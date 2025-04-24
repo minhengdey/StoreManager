@@ -14,8 +14,8 @@ import com.example.backend.repositories.OrdersRepository;
 import com.example.backend.repositories.ProductRepository;
 import com.example.backend.utils.FileUtility;
 import com.example.backend.utils.IdGenerator;
-import com.example.backend.utils.csvUtilities.OrderItemCsvUtility;
-import com.example.backend.utils.excelUtilities.OrderItemExcelUtility;
+import com.example.backend.utils.csv.OrderItemCsv;
+import com.example.backend.utils.excel.OrderItemExcel;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -35,8 +35,8 @@ public class OrderItemService {
     OrderItemMapper orderItemMapper;
     ProductRepository productRepository;
     OrdersRepository ordersRepository;
-    OrderItemExcelUtility orderItemExcelUtility;
-    OrderItemCsvUtility orderItemCsvUtility;
+    OrderItemExcel orderItemExcel;
+    OrderItemCsv orderItemCsv;
 
     public OrderItemResponse addOrderItem (OrderItemRequest request, String productId, String ordersId) {
         Product product = productRepository.findById(productId);
@@ -90,9 +90,9 @@ public class OrderItemService {
     public void saveAllFromFile (MultipartFile file, HttpServletResponse response) throws IOException {
         List<OrderItem> list;
         if (FileUtility.getFileType(file).equals(FileType.EXCEL)) {
-            list = orderItemExcelUtility.excelToOrderItemList(file.getInputStream(), response);
+            list = orderItemExcel.excelToOrderItemList(file.getInputStream(), response);
         } else if (FileUtility.getFileType(file).equals(FileType.CSV)) {
-            list = orderItemCsvUtility.csvToOrderItem(file.getInputStream(), response);
+            list = orderItemCsv.csvToOrderItem(file.getInputStream(), response);
         } else {
             throw new AppException(ErrorCode.UNKNOWN_FILE_TYPE);
         }

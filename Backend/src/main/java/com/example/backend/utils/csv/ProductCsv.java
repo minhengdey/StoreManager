@@ -1,4 +1,4 @@
-package com.example.backend.utils.csvUtilities;
+package com.example.backend.utils.csv;
 
 import com.example.backend.models.Product;
 import com.example.backend.repositories.ProductRepository;
@@ -22,7 +22,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class ProductCsvUtility {
+public class ProductCsv {
     ProductRepository productRepository;
 
     public List<Product> csvToProductList (InputStream inputStream, HttpServletResponse response) {

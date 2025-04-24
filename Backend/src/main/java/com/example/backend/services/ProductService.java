@@ -10,8 +10,8 @@ import com.example.backend.models.Product;
 import com.example.backend.repositories.ProductRepository;
 import com.example.backend.utils.FileUtility;
 import com.example.backend.utils.IdGenerator;
-import com.example.backend.utils.csvUtilities.ProductCsvUtility;
-import com.example.backend.utils.excelUtilities.ProductExcelUtility;
+import com.example.backend.utils.csv.ProductCsv;
+import com.example.backend.utils.excel.ProductExcel;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -28,8 +28,8 @@ import java.util.List;
 public class ProductService {
     ProductRepository productRepository;
     ProductMapper productMapper;
-    ProductExcelUtility productExcelUtility;
-    ProductCsvUtility productCsvUtility;
+    ProductExcel productExcel;
+    ProductCsv productCsv;
 
     public ProductResponse addProduct (ProductRequest request) {
         if (productRepository.existsByName(request.getName())) {
@@ -74,10 +74,10 @@ public class ProductService {
 
     public void saveAllFromFile (MultipartFile file, HttpServletResponse response) throws IOException {
         if (FileUtility.getFileType(file).equals(FileType.EXCEL)) {
-            List<Product> list = productExcelUtility.excelToProductList(file.getInputStream(), response);
+            List<Product> list = productExcel.excelToProductList(file.getInputStream(), response);
             productRepository.saveAll(list);
         } else if (FileUtility.getFileType(file).equals(FileType.CSV)) {
-            List<Product> list = productCsvUtility.csvToProductList(file.getInputStream(), response);
+            List<Product> list = productCsv.csvToProductList(file.getInputStream(), response);
             productRepository.saveAll(list);
         } else {
             throw new AppException(ErrorCode.UNKNOWN_FILE_TYPE);

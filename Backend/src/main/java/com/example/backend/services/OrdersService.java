@@ -11,8 +11,8 @@ import com.example.backend.repositories.CustomerRepository;
 import com.example.backend.repositories.OrdersRepository;
 import com.example.backend.utils.FileUtility;
 import com.example.backend.utils.IdGenerator;
-import com.example.backend.utils.csvUtilities.OrdersCsvUtility;
-import com.example.backend.utils.excelUtilities.OrdersExcelUtility;
+import com.example.backend.utils.csv.OrdersCsv;
+import com.example.backend.utils.excel.OrdersExcel;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -32,8 +32,8 @@ public class OrdersService {
     OrdersRepository ordersRepository;
     OrdersMapper ordersMapper;
     CustomerRepository customerRepository;
-    OrdersExcelUtility ordersExcelUtility;
-    OrdersCsvUtility ordersCsvUtility;
+    OrdersExcel ordersExcel;
+    OrdersCsv ordersCsv;
 
     @Transactional
     public OrdersResponse createOrders (String customerId) {
@@ -68,13 +68,13 @@ public class OrdersService {
 
     public void saveAllFromFile (MultipartFile file, HttpServletResponse response) throws IOException {
         if (FileUtility.getFileType(file).equals(FileType.EXCEL)) {
-            List<Orders> list = ordersExcelUtility.excelToOrdersList(file.getInputStream(), response);
+            List<Orders> list = ordersExcel.excelToOrdersList(file.getInputStream(), response);
             for (Orders orders : list) {
                 orders.setCustomer(customerRepository.findById(orders.getCustomer().getId()));
             }
             ordersRepository.saveAll(list);
         } else if (FileUtility.getFileType(file).equals(FileType.CSV)) {
-            List<Orders> list = ordersCsvUtility.csvToOrderList(file.getInputStream(), response);
+            List<Orders> list = ordersCsv.csvToOrderList(file.getInputStream(), response);
             for (Orders orders : list) {
                 orders.setCustomer(customerRepository.findById(orders.getCustomer().getId()));
             }

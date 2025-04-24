@@ -1,11 +1,13 @@
-package com.example.backend.utils.excelUtilities;
+package com.example.backend.utils.excel;
 
 import com.example.backend.enums.ErrorCode;
 import com.example.backend.exceptions.AppException;
-import com.example.backend.models.Customer;
+import com.example.backend.models.OrderItem;
 import com.example.backend.models.Orders;
-import com.example.backend.repositories.CustomerRepository;
+import com.example.backend.models.Product;
+import com.example.backend.repositories.OrderItemRepository;
 import com.example.backend.repositories.OrdersRepository;
+import com.example.backend.repositories.ProductRepository;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
@@ -17,7 +19,6 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -25,23 +26,27 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class OrdersExcelUtility {
+public class OrderItemExcel {
+    OrderItemRepository orderItemRepository;
+    ProductRepository productRepository;
     OrdersRepository ordersRepository;
-    CustomerRepository customerRepository;
+
     ArrayList<boolean[]> marks = new ArrayList<>();
 
-    public List<Orders> excelToOrdersList (InputStream inputStream, HttpServletResponse response) {
+    public List<OrderItem> excelToOrderItemList (InputStream inputStream, HttpServletResponse response) {
         try {
             Workbook workbook = new XSSFWorkbook(inputStream);
-            Sheet sheet = workbook.getSheet("Orders");
+            Sheet sheet = workbook.getSheet("OrderItem");
 
             if (sheet == null) {
                 throw new AppException(ErrorCode.SHEET_NOT_FOUND);
             }
 
             Iterator<Row> rows = sheet.iterator();
-            List<Orders> valid = new ArrayList<>();
-            List<Orders> invalid = new ArrayList<>();
+
+            List<OrderItem> valid = new ArrayList<>();
+            List<OrderItem> invalid = new ArrayList<>();
+
             int rowNumbers = 0;
 
             while (rows.hasNext()) {
@@ -53,23 +58,28 @@ public class OrdersExcelUtility {
                 }
 
                 Iterator<Cell> cells = currentRow.iterator();
+                OrderItem orderItem = new OrderItem();
                 int cellNumbers = 0;
                 boolean isValid = true;
-                boolean[] cellMark = new boolean[2];
-                Orders orders = new Orders();
-                orders.setTotalAmount(0F);
-                orders.setOrderDate(LocalDateTime.now());
+                boolean[] cellMark = new boolean[4];
 
                 while (cells.hasNext()) {
                     Cell currentCell = cells.next();
 
                     if (cellNumbers == 0) {
                         cellMark[cellNumbers] = isValidId(currentCell);
-                        orders.setId(currentCell.getStringCellValue());
+                        orderItem.setId(currentCell.getStringCellValue());
+                    } else if (cellNumbers == 1) {
+                        cellMark[cellNumbers] = isValidQuantity(currentCell);
+                        orderItem.setQuantity((int) currentCell.getNumericCellValue());
+                    } else if (cellNumbers == 2) {
+                        cellMark[cellNumbers] = isValidProductId(currentCell);
+                        orderItem.setProduct(new Product());
+                        orderItem.getProduct().setId(currentCell.getStringCellValue());
                     } else {
-                        cellMark[cellNumbers] = customerRepository.existsById(currentCell.getStringCellValue());
-                        orders.setCustomer(new Customer());
-                        orders.getCustomer().setId(currentCell.getStringCellValue());
+                        cellMark[cellNumbers] = isValidOrdersId(currentCell);
+                        orderItem.setOrders(new Orders());
+                        orderItem.getOrders().setId(currentCell.getStringCellValue());
                     }
                     isValid &= cellMark[cellNumbers];
                     ++ cellNumbers;
@@ -77,9 +87,9 @@ public class OrdersExcelUtility {
                 marks.add(cellMark);
 
                 if (isValid) {
-                    valid.add(orders);
+                    valid.add(orderItem);
                 } else {
-                    invalid.add(orders);
+                    invalid.add(orderItem);
                 }
             }
 
@@ -95,26 +105,50 @@ public class OrdersExcelUtility {
             return false;
         }
         String s = cell.getStringCellValue().substring(0, 4);
-        return s.equals("ORD-") && !ordersRepository.existsById(cell.getStringCellValue());
+        return s.equals("ORI-") && !orderItemRepository.existsById(cell.getStringCellValue());
     }
 
-    public void exportInvalidList (HttpServletResponse response, List<Orders> list) {
+    public boolean isValidQuantity (Cell cell) {
+        return (cell.getCellType().equals(CellType.NUMERIC) && cell.getNumericCellValue() > 0);
+    }
+
+    public boolean isValidProductId (Cell cell) {
+        if (!cell.getCellType().equals(CellType.STRING) || cell.getStringCellValue().length() != 10) {
+            return false;
+        }
+        String s = cell.getStringCellValue().substring(0, 4);
+        return s.equals("PRD-") && productRepository.existsById(cell.getStringCellValue());
+    }
+
+    public boolean isValidOrdersId (Cell cell) {
+        if (!cell.getCellType().equals(CellType.STRING) || cell.getStringCellValue().length() != 10) {
+            return false;
+        }
+        String s = cell.getStringCellValue().substring(0, 4);
+        return s.equals("ORD-") && ordersRepository.existsById(cell.getStringCellValue());
+    }
+
+    public void exportInvalidList (HttpServletResponse response, List<OrderItem> list) {
         Workbook workbook = new XSSFWorkbook();
-        Sheet sheet = workbook.createSheet("InvalidOrders");
+        Sheet sheet = workbook.createSheet("InvalidOrderItem");
 
         Row header = sheet.createRow(0);
         header.createCell(0).setCellValue("ID");
-        header.createCell(1).setCellValue("CUSTOMER_ID");
+        header.createCell(1).setCellValue("QUANTITY");
+        header.createCell(2).setCellValue("PRODUCT_ID");
+        header.createCell(3).setCellValue("ORDERS_ID");
         CellStyle cellStyle = workbook.createCellStyle();
         cellStyle.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
         cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
         int rowNumbers = 0;
-        for (Orders orders : list) {
+        for (OrderItem orderItem : list) {
             Row row = sheet.createRow(rowNumbers + 1);
-            row.createCell(0).setCellValue(orders.getId());
-            row.createCell(1).setCellValue(orders.getCustomer().getId());
-            for (int i = 0; i < 2; ++ i) {
+            row.createCell(0).setCellValue(orderItem.getId());
+            row.createCell(1).setCellValue(orderItem.getQuantity());
+            row.createCell(2).setCellValue(orderItem.getProduct().getId());
+            row.createCell(3).setCellValue(orderItem.getOrders().getId());
+            for (int i = 0; i < 4; ++ i) {
                 if (!marks.get(rowNumbers)[i]) {
                     row.getCell(i).setCellStyle(cellStyle);
                 }
@@ -122,13 +156,13 @@ public class OrdersExcelUtility {
             ++ rowNumbers;
         }
 
-        for (int i = 0; i < 2; ++ i) {
+        for (int i = 0; i < 4; ++ i) {
             sheet.autoSizeColumn(i);
         }
 
         try {
             response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-            response.setHeader("Content-Disposition", "attachment; filename=invalid_orders.xlsx");
+            response.setHeader("Content-Disposition", "attachment; filename=invalid_order_items.xlsx");
             ServletOutputStream outputStream = response.getOutputStream();
             workbook.write(outputStream);
             workbook.close();

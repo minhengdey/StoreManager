@@ -1,4 +1,4 @@
-package com.example.backend.utils.csvUtilities;
+package com.example.backend.utils.csv;
 
 import com.example.backend.models.OrderItem;
 import com.example.backend.models.Orders;
@@ -26,7 +26,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class OrderItemCsvUtility {
+public class OrderItemCsv {
     OrderItemRepository orderItemRepository;
     ProductRepository productRepository;
     OrdersRepository ordersRepository;

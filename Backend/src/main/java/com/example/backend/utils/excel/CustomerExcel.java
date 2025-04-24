@@ -1,9 +1,9 @@
-package com.example.backend.utils.excelUtilities;
+package com.example.backend.utils.excel;
 
 import com.example.backend.enums.ErrorCode;
 import com.example.backend.exceptions.AppException;
-import com.example.backend.models.Product;
-import com.example.backend.repositories.ProductRepository;
+import com.example.backend.models.Customer;
+import com.example.backend.repositories.CustomerRepository;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
@@ -18,28 +18,35 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Pattern;
 
 @Component
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class ProductExcelUtility {
-    ProductRepository productRepository;
+public class CustomerExcel {
+
+    Pattern EMAIL_REGEX = Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
+    Pattern PHONE_REGEX = Pattern.compile("^\\d{10}$");
     ArrayList<boolean[]> marks = new ArrayList<>();
 
-    public List<Product> excelToProductList (InputStream inputStream, HttpServletResponse response) {
+    CustomerRepository customerRepository;
+
+    public List<Customer> excelToCustomerList (InputStream inputStream, HttpServletResponse response) {
         try {
             Workbook workbook = new XSSFWorkbook(inputStream);
-            Sheet sheet = workbook.getSheet("Product");
+            Sheet sheet = workbook.getSheet("Customer");
 
             if (sheet == null) {
                 throw new AppException(ErrorCode.SHEET_NOT_FOUND);
             }
 
             Iterator<Row> rows = sheet.iterator();
-            List<Product> valid = new ArrayList<>();
-            List<Product> invalid = new ArrayList<>();
+
+            List<Customer> valid = new ArrayList<>();
+            List<Customer> invalid = new ArrayList<>();
 
             int rowNumbers = 0;
+
             while (rows.hasNext()) {
                 Row currentRow = rows.next();
 
@@ -49,39 +56,39 @@ public class ProductExcelUtility {
                 }
 
                 Iterator<Cell> cells = currentRow.iterator();
+                Customer customer = new Customer();
                 int cellNumbers = 0;
                 boolean isValid = true;
-                boolean[] cellMark = new boolean[4];
-                Product product = new Product();
+                boolean[] markCell = new boolean[4];
 
                 while (cells.hasNext()) {
                     Cell currentCell = cells.next();
                     if (cellNumbers == 0) {
-                        cellMark[cellNumbers] = isValidId(currentCell);
-                        product.setId(currentCell.getStringCellValue());
+                        markCell[cellNumbers] = isValidId(currentCell);
+                        customer.setId(currentCell.getStringCellValue());
                     } else if (cellNumbers == 1) {
-                        cellMark[cellNumbers] = isValidName(currentCell);
-                        product.setName(currentCell.getStringCellValue());
+                        markCell[cellNumbers] = isValidName(currentCell);
+                        customer.setName(currentCell.getStringCellValue());
                     } else if (cellNumbers == 2) {
-                        product.setPrice((float) currentCell.getNumericCellValue());
-                        cellMark[cellNumbers] = (product.getPrice() > 0);
+                        markCell[cellNumbers] = isValidPhone(currentCell);
+                        customer.setPhone(currentCell.getStringCellValue());
                     } else {
-                        product.setStockQuantity((int) currentCell.getNumericCellValue());
-                        cellMark[cellNumbers] = (product.getStockQuantity() > 0);
+                        markCell[cellNumbers] = isValidEmail(currentCell);
+                        customer.setEmail(currentCell.getStringCellValue());
                     }
-
-                    isValid &= cellMark[cellNumbers];
+                    isValid &= markCell[cellNumbers];
                     ++ cellNumbers;
                 }
-                marks.add(cellMark);
+
+                marks.add(markCell);
 
                 if (isValid) {
-                    valid.add(product);
+                    valid.add(customer);
                 } else {
-                    invalid.add(product);
+                    invalid.add(customer);
                 }
             }
-
+            workbook.close();
             exportInvalidList(response, invalid);
             return valid;
         } catch (IOException e) {
@@ -94,33 +101,41 @@ public class ProductExcelUtility {
             return false;
         }
         String s = cell.getStringCellValue().substring(0, 4);
-        return s.equals("PRD-") && !productRepository.existsById(cell.getStringCellValue());
+        return s.equals("CTM-") && !customerRepository.existsById(cell.getStringCellValue());
     }
 
     public boolean isValidName (Cell cell) {
         return  !(!cell.getCellType().equals(CellType.STRING) || cell.getStringCellValue().length() < 2 || cell.getStringCellValue().length() > 30);
     }
 
-    public void exportInvalidList (HttpServletResponse response, List<Product> list) {
+    public boolean isValidPhone (Cell cell) {
+        return (cell.getCellType().equals(CellType.STRING) && PHONE_REGEX.matcher(cell.getStringCellValue()).matches());
+    }
+
+    public boolean isValidEmail (Cell cell) {
+        return (cell.getCellType().equals(CellType.STRING) && EMAIL_REGEX.matcher(cell.getStringCellValue()).matches());
+    }
+
+    public void exportInvalidList (HttpServletResponse response, List<Customer> list) {
         Workbook workbook = new XSSFWorkbook();
-        Sheet sheet = workbook.createSheet("InvalidProduct");
+        Sheet sheet = workbook.createSheet("InvalidCustomer");
 
         Row header = sheet.createRow(0);
         header.createCell(0).setCellValue("ID");
         header.createCell(1).setCellValue("NAME");
-        header.createCell(2).setCellValue("PRICE");
-        header.createCell(3).setCellValue("STOCK_QUANTITY");
+        header.createCell(2).setCellValue("PHONE");
+        header.createCell(3).setCellValue("EMAIL");
         CellStyle cellStyle = workbook.createCellStyle();
         cellStyle.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
         cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
         int rowNumbers = 0;
-        for (Product product : list) {
+        for (Customer customer : list) {
             Row row = sheet.createRow(rowNumbers + 1);
-            row.createCell(0).setCellValue(product.getId());
-            row.createCell(1).setCellValue(product.getName());
-            row.createCell(2).setCellValue(product.getPrice());
-            row.createCell(3).setCellValue(product.getStockQuantity());
+            row.createCell(0).setCellValue(customer.getId());
+            row.createCell(1).setCellValue(customer.getName());
+            row.createCell(2).setCellValue(customer.getPhone());
+            row.createCell(3).setCellValue(customer.getEmail());
             for (int i = 0; i < 4; ++ i) {
                 if (!marks.get(rowNumbers)[i]) {
                     row.getCell(i).setCellStyle(cellStyle);
@@ -135,7 +150,7 @@ public class ProductExcelUtility {
 
         try {
             response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-            response.setHeader("Content-Disposition", "attachment; filename=invalid_products.xlsx");
+            response.setHeader("Content-Disposition", "attachment; filename=invalid_customers.xlsx");
             ServletOutputStream outputStream = response.getOutputStream();
             workbook.write(outputStream);
             workbook.close();
@@ -143,5 +158,6 @@ public class ProductExcelUtility {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
     }
 }

@@ -1,4 +1,4 @@
-package com.example.backend.utils.csvUtilities;
+package com.example.backend.utils.csv;
 
 import com.example.backend.models.Customer;
 import com.example.backend.repositories.CustomerRepository;
@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
 @Component
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class CustomerCsvUtility {
+public class CustomerCsv {
     Pattern EMAIL_REGEX = Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
     Pattern PHONE_REGEX = Pattern.compile("^\\d{10}$");
 
