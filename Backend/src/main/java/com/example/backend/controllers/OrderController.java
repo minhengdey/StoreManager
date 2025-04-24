@@ -39,10 +39,10 @@ public class OrderController {
     }
 
     @GetMapping(value = "/all")
-    public ApiResponse<List<OrdersResponse>> getAllOrders () {
+    public ApiResponse<List<OrdersResponse>> getAllOrders (@RequestParam("page") int page, @RequestParam("pageSize") int pageSize) {
         return ApiResponse.<List<OrdersResponse>>builder()
                 .code(1000)
-                .result(ordersService.getAllOrders())
+                .result(ordersService.getAllOrders(page, pageSize))
                 .build();
     }
 }

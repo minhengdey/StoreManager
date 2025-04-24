@@ -53,7 +53,7 @@ public class OrdersService {
         ordersRepository.deleteOrder(id);
     }
 
-    public List<OrdersResponse> getAllOrders () {
-        return ordersRepository.getAllOrders().stream().map(ordersMapper::toResponse).toList();
+    public List<OrdersResponse> getAllOrders (int page, int pageSize) {
+        return ordersRepository.getAllOrders(page, pageSize).stream().map(ordersMapper::toResponse).toList();
     }
 }
