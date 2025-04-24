@@ -37,11 +37,13 @@ public class CustomerCsvUtility {
             Iterable<CSVRecord> csvRecords = csvParser.getRecords();
 
             for (CSVRecord csvRecord : csvRecords) {
+                boolean[] cellMark = new boolean[4];
                 Customer customer = new Customer();
-                customer.setId(csvRecord.get("ID"));
-                customer.setName(csvRecord.get("NAME"));
-                customer.setPhone(csvRecord.get("PHONE"));
-                customer.setEmail(csvRecord.get("EMAIL"));
+
+                customer.setId(csvRecord.get("ID") + ((isValidId(csvRecord.get("ID")) ? "" : "*")));
+                customer.setName(csvRecord.get("NAME") + ((isValidName(csvRecord.get("NAME")) ? "" : "*")));
+                customer.setPhone(csvRecord.get("PHONE") + ((isValidPhone(csvRecord.get("PHONE")) ? "" : "*")));
+                customer.setEmail(csvRecord.get("EMAIL") + ((isValidEmail(csvRecord.get("EMAIL")) ? "" : "*")));
 
                 if (isValidId(customer.getId()) && isValidName(customer.getName()) && isValidPhone(customer.getPhone())
                         && isValidEmail(customer.getEmail())) {
@@ -59,7 +61,7 @@ public class CustomerCsvUtility {
     }
 
     public boolean isValidId (String id) {
-        return id.length() == 10 && id.startsWith("CTM-");
+        return id.length() == 10 && id.startsWith("CTM-") && !customerRepository.existsById(id);
     }
 
     public boolean isValidName (String name) {
@@ -80,7 +82,7 @@ public class CustomerCsvUtility {
 
         try (ServletOutputStream outputStream = response.getOutputStream();
              OutputStreamWriter writer = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
-             CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader("ID", "NAME", "PHONE", "EMAIL"));) {
+             CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader("ID", "NAME", "PHONE", "EMAIL"))) {
             for (Customer customer : list) {
                 csvPrinter.printRecord(customer.getId(), customer.getName(), customer.getPhone(), customer.getEmail());
             }
