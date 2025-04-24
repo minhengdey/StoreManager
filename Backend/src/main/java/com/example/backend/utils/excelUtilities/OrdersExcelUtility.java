@@ -4,10 +4,15 @@ import com.example.backend.enums.ErrorCode;
 import com.example.backend.exceptions.AppException;
 import com.example.backend.models.Customer;
 import com.example.backend.models.Orders;
+import com.example.backend.repositories.OrdersRepository;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,8 +21,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+@Component
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class OrdersExcelUtility {
-    public static List<Orders> excelToOrdersList (InputStream inputStream, HttpServletResponse response) {
+    OrdersRepository ordersRepository;
+
+    public List<Orders> excelToOrdersList (InputStream inputStream, HttpServletResponse response) {
         try {
             Workbook workbook = new XSSFWorkbook(inputStream);
             Sheet sheet = workbook.getSheet("Orders");
@@ -74,7 +84,7 @@ public class OrdersExcelUtility {
         }
     }
 
-    public static boolean isValidId (Cell cell) {
+    public boolean isValidId (Cell cell) {
         if (!cell.getCellType().equals(CellType.STRING) || cell.getStringCellValue().length() != 10) {
             return false;
         }
@@ -82,7 +92,7 @@ public class OrdersExcelUtility {
         return s.equals("ORD-");
     }
 
-    public static void exportInvalidList (HttpServletResponse response, List<Orders> list) {
+    public void exportInvalidList (HttpServletResponse response, List<Orders> list) {
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("InvalidOrders");
 

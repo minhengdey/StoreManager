@@ -31,6 +31,7 @@ public class OrdersService {
     OrdersRepository ordersRepository;
     OrdersMapper ordersMapper;
     CustomerRepository customerRepository;
+    OrdersExcelUtility ordersExcelUtility;
 
     @Transactional
     public OrdersResponse createOrders (String customerId) {
@@ -65,7 +66,7 @@ public class OrdersService {
 
     public void saveAllFromFile (MultipartFile file, HttpServletResponse response) throws IOException {
         if (FileUtility.getFileType(file).equals(FileType.EXCEL)) {
-            List<Orders> list = OrdersExcelUtility.excelToOrdersList(file.getInputStream(), response);
+            List<Orders> list = ordersExcelUtility.excelToOrdersList(file.getInputStream(), response);
             for (Orders orders : list) {
                 orders.setCustomer(customerRepository.findById(orders.getCustomer().getId()));
             }

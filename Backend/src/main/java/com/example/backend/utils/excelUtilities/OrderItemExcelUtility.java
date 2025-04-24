@@ -5,10 +5,15 @@ import com.example.backend.exceptions.AppException;
 import com.example.backend.models.OrderItem;
 import com.example.backend.models.Orders;
 import com.example.backend.models.Product;
+import com.example.backend.repositories.OrderItemRepository;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,9 +21,15 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+@Component
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class OrderItemExcelUtility {
+    OrderItemRepository orderItemRepository;
+    ProductExcelUtility productExcelUtility;
+    OrdersExcelUtility ordersExcelUtility;
 
-    public static List<OrderItem> excelToOrderItemList (InputStream inputStream, HttpServletResponse response) {
+    public List<OrderItem> excelToOrderItemList (InputStream inputStream, HttpServletResponse response) {
         try {
             Workbook workbook = new XSSFWorkbook(inputStream);
             Sheet sheet = workbook.getSheet("OrderItem");
@@ -57,11 +68,11 @@ public class OrderItemExcelUtility {
                         isValid &= isValidQuantity(currentCell);
                         orderItem.setQuantity((int) currentCell.getNumericCellValue());
                     } else if (cellNumbers == 2) {
-                        isValid &= ProductExcelUtility.isValidId(currentCell);
+                        isValid &= productExcelUtility.isValidId(currentCell);
                         orderItem.setProduct(new Product());
                         orderItem.getProduct().setId(currentCell.getStringCellValue());
                     } else {
-                        isValid &= OrdersExcelUtility.isValidId(currentCell);
+                        isValid &= ordersExcelUtility.isValidId(currentCell);
                         orderItem.setOrders(new Orders());
                         orderItem.getOrders().setId(currentCell.getStringCellValue());
                     }
@@ -82,7 +93,7 @@ public class OrderItemExcelUtility {
         }
     }
 
-    public static boolean isValidId (Cell cell) {
+    public boolean isValidId (Cell cell) {
         if (!cell.getCellType().equals(CellType.STRING) || cell.getStringCellValue().length() != 10) {
             return false;
         }
@@ -90,11 +101,11 @@ public class OrderItemExcelUtility {
         return s.equals("ORI-");
     }
 
-    public static boolean isValidQuantity (Cell cell) {
+    public boolean isValidQuantity (Cell cell) {
         return (cell.getCellType().equals(CellType.NUMERIC) && cell.getNumericCellValue() > 0);
     }
 
-    public static void exportInvalidList (HttpServletResponse response, List<OrderItem> list) {
+    public void exportInvalidList (HttpServletResponse response, List<OrderItem> list) {
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("InvalidOrderItem");
 

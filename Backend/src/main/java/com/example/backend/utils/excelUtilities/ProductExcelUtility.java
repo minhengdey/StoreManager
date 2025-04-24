@@ -3,10 +3,15 @@ package com.example.backend.utils.excelUtilities;
 import com.example.backend.enums.ErrorCode;
 import com.example.backend.exceptions.AppException;
 import com.example.backend.models.Product;
+import com.example.backend.repositories.ProductRepository;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,9 +19,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+@Component
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class ProductExcelUtility {
+    ProductRepository productRepository;
 
-    public static List<Product> excelToProductList (InputStream inputStream, HttpServletResponse response) {
+    public List<Product> excelToProductList (InputStream inputStream, HttpServletResponse response) {
         try {
             Workbook workbook = new XSSFWorkbook(inputStream);
             Sheet sheet = workbook.getSheet("Product");
@@ -75,7 +84,7 @@ public class ProductExcelUtility {
         }
     }
 
-    public static boolean isValidId (Cell cell) {
+    public boolean isValidId (Cell cell) {
         if (!cell.getCellType().equals(CellType.STRING) || cell.getStringCellValue().length() != 10) {
             return false;
         }
@@ -83,11 +92,11 @@ public class ProductExcelUtility {
         return s.equals("PRD-");
     }
 
-    public static boolean isValidName (Cell cell) {
+    public boolean isValidName (Cell cell) {
         return  !(!cell.getCellType().equals(CellType.STRING) || cell.getStringCellValue().length() < 2 || cell.getStringCellValue().length() > 30);
     }
 
-    public static void exportInvalidList (HttpServletResponse response, List<Product> list) {
+    public void exportInvalidList (HttpServletResponse response, List<Product> list) {
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("InvalidProduct");
 

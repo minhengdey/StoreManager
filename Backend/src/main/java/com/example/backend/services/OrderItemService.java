@@ -34,6 +34,7 @@ public class OrderItemService {
     OrderItemMapper orderItemMapper;
     ProductRepository productRepository;
     OrdersRepository ordersRepository;
+    OrderItemExcelUtility orderItemExcelUtility;
 
     public OrderItemResponse addOrderItem (OrderItemRequest request, String productId, String ordersId) {
         Product product = productRepository.findById(productId);
@@ -86,7 +87,7 @@ public class OrderItemService {
 
     public void saveAllFromFile (MultipartFile file, HttpServletResponse response) throws IOException {
         if (FileUtility.getFileType(file).equals(FileType.EXCEL)) {
-            List<OrderItem> list = OrderItemExcelUtility.excelToOrderItemList(file.getInputStream(), response);
+            List<OrderItem> list = orderItemExcelUtility.excelToOrderItemList(file.getInputStream(), response);
             for (OrderItem orderItem : list) {
                 orderItem.setProduct(productRepository.findById(orderItem.getProduct().getId()));
                 Orders orders = ordersRepository.findById(orderItem.getOrders().getId());

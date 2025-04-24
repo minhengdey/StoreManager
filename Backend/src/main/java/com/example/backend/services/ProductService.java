@@ -28,6 +28,8 @@ import java.util.List;
 public class ProductService {
     ProductRepository productRepository;
     ProductMapper productMapper;
+    ProductExcelUtility productExcelUtility;
+    ProductCsvUtility productCsvUtility;
 
     public ProductResponse addProduct (ProductRequest request) {
         if (productRepository.existsByName(request.getName())) {
@@ -72,10 +74,10 @@ public class ProductService {
 
     public void saveAllFromFile (MultipartFile file, HttpServletResponse response) throws IOException {
         if (FileUtility.getFileType(file).equals(FileType.EXCEL)) {
-            List<Product> list = ProductExcelUtility.excelToProductList(file.getInputStream(), response);
+            List<Product> list = productExcelUtility.excelToProductList(file.getInputStream(), response);
             productRepository.saveAll(list);
         } else if (FileUtility.getFileType(file).equals(FileType.CSV)) {
-            List<Product> list = ProductCsvUtility.csvToProductList(file.getInputStream(), response);
+            List<Product> list = productCsvUtility.csvToProductList(file.getInputStream(), response);
             productRepository.saveAll(list);
         } else {
             throw new AppException(ErrorCode.UNKNOWN_FILE_TYPE);

@@ -1,21 +1,31 @@
 package com.example.backend.utils.csvUtilities;
 
 import com.example.backend.models.Product;
+import com.example.backend.repositories.ProductRepository;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.io.input.BOMInputStream;
+import org.springframework.stereotype.Component;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+@Component
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class ProductCsvUtility {
-    public static List<Product> csvToProductList (InputStream inputStream, HttpServletResponse response) {
+    ProductRepository productRepository;
+
+    public List<Product> csvToProductList (InputStream inputStream, HttpServletResponse response) {
         try (BufferedReader bReader = new BufferedReader(new InputStreamReader(new BOMInputStream(inputStream), StandardCharsets.UTF_8));
              CSVParser csvParser = new CSVParser(bReader, CSVFormat.DEFAULT.withFirstRecordAsHeader().withIgnoreHeaderCase().withTrim())) {
             List<Product> valid = new ArrayList<>();
@@ -44,15 +54,15 @@ public class ProductCsvUtility {
         }
     }
 
-    public static boolean isValidId (String id) {
+    public boolean isValidId (String id) {
         return id.length() == 10 && id.startsWith("PRD-");
     }
 
-    public static boolean isValidName (String name) {
+    public boolean isValidName (String name) {
         return name.length() >= 2 && name.length() <= 30;
     }
 
-    public static void exportInvalidList (HttpServletResponse response, List<Product> list) {
+    public void exportInvalidList (HttpServletResponse response, List<Product> list) {
         response.setContentType("text/csv");
         response.setHeader("Content-Disposition", "attachment; filename=invalid_products.csv");
 

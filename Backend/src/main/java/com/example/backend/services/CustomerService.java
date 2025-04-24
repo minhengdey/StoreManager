@@ -29,6 +29,8 @@ public class CustomerService {
 
     CustomerRepository customerRepository;
     CustomerMapper customerMapper;
+    CustomerExcelUtility customerExcelUtility;
+    CustomerCsvUtility customerCsvUtility;
 
     public CustomerResponse addCustomer (CustomerRequest request) {
         Customer customer = customerMapper.toCustomer(request);
@@ -62,10 +64,10 @@ public class CustomerService {
 
     public void saveAllFromFile (MultipartFile file, HttpServletResponse response) throws IOException {
         if (FileUtility.getFileType(file).equals(FileType.EXCEL)) {
-            List<Customer> list = CustomerExcelUtility.excelToCustomerList(file.getInputStream(), response);
+            List<Customer> list = customerExcelUtility.excelToCustomerList(file.getInputStream(), response);
             customerRepository.saveAllCustomer(list);
         } else if (FileUtility.getFileType(file).equals(FileType.CSV)) {
-            List<Customer> list = CustomerCsvUtility.csvToCustomerList(file.getInputStream(), response);
+            List<Customer> list = customerCsvUtility.csvToCustomerList(file.getInputStream(), response);
             customerRepository.saveAllCustomer(list);
         } else {
             throw new AppException(ErrorCode.UNKNOWN_FILE_TYPE);
