@@ -39,11 +39,11 @@ public class OrdersCsv {
 
             for (CSVRecord csvRecord : csvRecords) {
                 Orders orders = new Orders();
-                orders.setId(csvRecord.get("ID") + ((isValidId(csvRecord.get("ID")) ? "" : "*")));
+                orders.setId(csvRecord.get("ID"));
                 orders.setOrderDate(LocalDateTime.now());
                 orders.setTotalAmount(0F);
                 orders.setCustomer(new Customer());
-                orders.getCustomer().setId(csvRecord.get("CUSTOMER_ID") + ((isValidCustomerId(csvRecord.get("CUSTOMER_ID")) ? "" : "*")));
+                orders.getCustomer().setId(csvRecord.get("CUSTOMER_ID"));
 
                 if (isValidId(orders.getId()) && isValidCustomerId(orders.getCustomer().getId())) {
                     valid.add(orders);
@@ -75,7 +75,9 @@ public class OrdersCsv {
              OutputStreamWriter writer = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
              CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader("ID", "ORDER_DATE", "TOTAL_AMOUNT", "CUSTOMER_ID"))) {
             for (Orders orders : list) {
-                csvPrinter.printRecord(orders.getId(), orders.getOrderDate(), orders.getTotalAmount(), orders.getCustomer().getId());
+                csvPrinter.printRecord(orders.getId() + ((isValidId(orders.getId()) ? "" : "*")),
+                        orders.getOrderDate(), orders.getTotalAmount(),
+                        orders.getCustomer().getId() + ((isValidCustomerId(orders.getCustomer().getId()) ? "" : "*")));
             }
 
             csvPrinter.flush();

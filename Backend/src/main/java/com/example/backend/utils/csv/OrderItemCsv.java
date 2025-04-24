@@ -40,12 +40,12 @@ public class OrderItemCsv {
             Iterable<CSVRecord> csvRecords = csvParser.getRecords();
             for (CSVRecord csvRecord : csvRecords) {
                 OrderItem orderItem = new OrderItem();
-                orderItem.setId(csvRecord.get("ID") + ((isValidId(csvRecord.get("ID")) ? "" : "*")));
+                orderItem.setId(csvRecord.get("ID"));
                 orderItem.setQuantity(Integer.valueOf(csvRecord.get("QUANTITY")));
                 orderItem.setProduct(new Product());
-                orderItem.getProduct().setId(csvRecord.get("PRODUCT_ID") + ((isValidProductId(csvRecord.get("PRODUCT_ID")) ? "" : "*")));
+                orderItem.getProduct().setId(csvRecord.get("PRODUCT_ID"));
                 orderItem.setOrders(new Orders());
-                orderItem.getOrders().setId(csvRecord.get("ORDERS_ID") + ((isValidOrdersId(csvRecord.get("ORDERS_ID")) ? "" : "*")));
+                orderItem.getOrders().setId(csvRecord.get("ORDERS_ID"));
 
                 if (isValidId(orderItem.getId()) && orderItem.getQuantity() > 0 && isValidProductId(orderItem.getProduct().getId()) &&
                         isValidOrdersId(orderItem.getOrders().getId())) {
@@ -82,8 +82,10 @@ public class OrderItemCsv {
              OutputStreamWriter writer = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
              CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader("ID", "QUANTITY", "PRODUCT_ID", "ORDERS_ID"))) {
             for (OrderItem orderItem : list) {
-                csvPrinter.printRecord(orderItem.getId(), orderItem.getQuantity() + (orderItem.getQuantity() > 0 ? "" : "*"),
-                        orderItem.getProduct().getId(), orderItem.getOrders().getId());
+                csvPrinter.printRecord(orderItem.getId() + ((isValidId(orderItem.getId()) ? "" : "*")),
+                        orderItem.getQuantity() + (orderItem.getQuantity() > 0 ? "" : "*"),
+                        orderItem.getProduct().getId() + ((isValidProductId(orderItem.getProduct().getId()) ? "" : "*")),
+                        orderItem.getOrders().getId() + ((isValidOrdersId(orderItem.getOrders().getId()) ? "" : "*")));
             }
 
             csvPrinter.flush();
