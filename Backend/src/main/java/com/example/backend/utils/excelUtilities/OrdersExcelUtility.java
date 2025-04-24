@@ -4,6 +4,7 @@ import com.example.backend.enums.ErrorCode;
 import com.example.backend.exceptions.AppException;
 import com.example.backend.models.Customer;
 import com.example.backend.models.Orders;
+import com.example.backend.repositories.CustomerRepository;
 import com.example.backend.repositories.OrdersRepository;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletResponse;
@@ -26,6 +27,8 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class OrdersExcelUtility {
     OrdersRepository ordersRepository;
+    CustomerRepository customerRepository;
+    ArrayList<boolean[]> marks = new ArrayList<>();
 
     public List<Orders> excelToOrdersList (InputStream inputStream, HttpServletResponse response) {
         try {
@@ -52,6 +55,7 @@ public class OrdersExcelUtility {
                 Iterator<Cell> cells = currentRow.iterator();
                 int cellNumbers = 0;
                 boolean isValid = true;
+                boolean[] cellMark = new boolean[2];
                 Orders orders = new Orders();
                 orders.setTotalAmount(0F);
                 orders.setOrderDate(LocalDateTime.now());
@@ -60,15 +64,17 @@ public class OrdersExcelUtility {
                     Cell currentCell = cells.next();
 
                     if (cellNumbers == 0) {
-                        isValid &= isValidId(currentCell);
+                        cellMark[cellNumbers] = isValidId(currentCell);
                         orders.setId(currentCell.getStringCellValue());
                     } else {
+                        cellMark[cellNumbers] = customerRepository.existsById(currentCell.getStringCellValue());
                         orders.setCustomer(new Customer());
                         orders.getCustomer().setId(currentCell.getStringCellValue());
                     }
-
+                    isValid &= cellMark[cellNumbers];
                     ++ cellNumbers;
                 }
+                marks.add(cellMark);
 
                 if (isValid) {
                     valid.add(orders);
@@ -89,7 +95,7 @@ public class OrdersExcelUtility {
             return false;
         }
         String s = cell.getStringCellValue().substring(0, 4);
-        return s.equals("ORD-");
+        return s.equals("ORD-") && !ordersRepository.existsById(cell.getStringCellValue());
     }
 
     public void exportInvalidList (HttpServletResponse response, List<Orders> list) {
@@ -99,12 +105,21 @@ public class OrdersExcelUtility {
         Row header = sheet.createRow(0);
         header.createCell(0).setCellValue("ID");
         header.createCell(1).setCellValue("CUSTOMER_ID");
+        CellStyle cellStyle = workbook.createCellStyle();
+        cellStyle.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
+        cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
-        int rowNumbers = 1;
+        int rowNumbers = 0;
         for (Orders orders : list) {
-            Row row = sheet.createRow(rowNumbers ++);
+            Row row = sheet.createRow(rowNumbers + 1);
             row.createCell(0).setCellValue(orders.getId());
             row.createCell(1).setCellValue(orders.getCustomer().getId());
+            for (int i = 0; i < 2; ++ i) {
+                if (!marks.get(rowNumbers)[i]) {
+                    row.getCell(i).setCellStyle(cellStyle);
+                }
+            }
+            ++ rowNumbers;
         }
 
         for (int i = 0; i < 2; ++ i) {
