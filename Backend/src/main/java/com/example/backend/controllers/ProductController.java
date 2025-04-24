@@ -57,10 +57,10 @@ public class ProductController {
     }
 
     @GetMapping(value = "/all")
-    public ApiResponse<List<ProductResponse>> getAll () {
+    public ApiResponse<List<ProductResponse>> getAll (@RequestParam("page") int page, @RequestParam("pageSize") int pageSize) {
         return ApiResponse.<List<ProductResponse>>builder()
                 .code(1000)
-                .result(productService.getAllProduct())
+                .result(productService.getAllProduct(page, pageSize))
                 .build();
     }
 }

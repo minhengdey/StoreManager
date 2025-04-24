@@ -25,10 +25,10 @@ public class ProductRepository {
     DatabaseConfig databaseConfig;
 
     public Product addProduct (Product product) {
-        String sql = "INSERT INTO STOREMANAGER.PRODUCTS (ID, NAME, PRICE, STOCK_QUANTITY) VALUES (?, ?, ?, ?)";
+        StringBuilder sql = new StringBuilder("INSERT INTO STOREMANAGER.PRODUCTS (ID, NAME, PRICE, STOCK_QUANTITY) VALUES (?, ?, ?, ?)");
 
         try (Connection connection = databaseConfig.getConnection();
-        PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
 
             preparedStatement.setString(1, product.getId());
             preparedStatement.setString(2, product.getName());
@@ -45,9 +45,9 @@ public class ProductRepository {
     }
 
     public Product findById (String id) {
-        String sql = "SELECT * FROM STOREMANAGER.PRODUCTS WHERE ID = ?";
+        StringBuilder sql = new StringBuilder("SELECT * FROM STOREMANAGER.PRODUCTS WHERE ID = ?");
         try (Connection connection = databaseConfig.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
 
             preparedStatement.setString(1, id);
 
@@ -68,9 +68,9 @@ public class ProductRepository {
     }
 
     public Product findByName (String name) {
-        String sql = "SELECT * FROM STOREMANAGER.PRODUCTS WHERE NAME = ?";
+        StringBuilder sql = new StringBuilder("SELECT * FROM STOREMANAGER.PRODUCTS WHERE NAME = ?");
         try (Connection connection = databaseConfig.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
 
             preparedStatement.setString(1, name);
 
@@ -91,9 +91,9 @@ public class ProductRepository {
     }
 
     public Product saveProduct (Product product) {
-        String sql = "UPDATE STOREMANAGER.PRODUCTS SET NAME = ?, PRICE = ?, STOCK_QUANTITY = ? WHERE ID = ?";
+        StringBuilder sql = new StringBuilder("UPDATE STOREMANAGER.PRODUCTS SET NAME = ?, PRICE = ?, STOCK_QUANTITY = ? WHERE ID = ?");
         try (Connection connection = databaseConfig.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
 
             preparedStatement.setString(1, product.getName());
             preparedStatement.setFloat(2, product.getPrice());
@@ -109,9 +109,9 @@ public class ProductRepository {
     }
 
     public void deleteProduct (String id) {
-        String sql = "DELETE FROM STOREMANAGER.PRODUCTS WHERE ID = ?";
+        StringBuilder sql = new StringBuilder("DELETE FROM STOREMANAGER.PRODUCTS WHERE ID = ?");
         try (Connection connection = databaseConfig.getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
 
             preparedStatement.setString(1, id);
 
@@ -121,10 +121,14 @@ public class ProductRepository {
         }
     }
 
-    public List<Product> getAllProduct () {
-        String sql = "SELECT * FROM STOREMANAGER.PRODUCTS";
+    public List<Product> getAllProduct (int page, int pageSize) {
+        StringBuilder sql = new StringBuilder("SELECT * FROM STOREMANAGER.PRODUCTS OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+        int offset = (page - 1) * pageSize;
+
         try (Connection connection = databaseConfig.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
+            preparedStatement.setInt(1, offset);
+            preparedStatement.setInt(2, pageSize);
 
             ResultSet resultSet = preparedStatement.executeQuery();
             List<Product> list = new ArrayList<>();
@@ -145,9 +149,9 @@ public class ProductRepository {
     }
 
     public boolean existsByName (String name) {
-        String sql = "SELECT * FROM STOREMANAGER.PRODUCTS WHERE NAME = ?";
+        StringBuilder sql = new StringBuilder("SELECT * FROM STOREMANAGER.PRODUCTS WHERE NAME = ?");
         try (Connection connection = databaseConfig.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
 
             preparedStatement.setString(1, name);
 
@@ -160,9 +164,9 @@ public class ProductRepository {
     }
 
     public boolean existsById (String id) {
-        String sql = "SELECT * FROM STOREMANAGER.PRODUCTS WHERE ID = ?";
+        StringBuilder sql = new StringBuilder("SELECT * FROM STOREMANAGER.PRODUCTS WHERE ID = ?");
         try (Connection connection = databaseConfig.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
 
             preparedStatement.setString(1, id);
 
