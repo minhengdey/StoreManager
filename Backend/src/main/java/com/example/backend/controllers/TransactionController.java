@@ -23,17 +23,7 @@ public class TransactionController {
                                                             @PathVariable("orderId") String orderId) {
         return ApiResponse.<TransactionResponse>builder()
                 .code(1000)
-                .result(transactionService.addTransaction(request, orderId))
-                .build();
-    }
-
-    @PutMapping(value = "/{id}/orders/{orderId}")
-    public ApiResponse<TransactionResponse> updateTransaction (@PathVariable("id") String id,
-                                                               @Valid @RequestBody TransactionRequest request,
-                                                               @PathVariable("orderId") String orderId) {
-        return ApiResponse.<TransactionResponse>builder()
-                .code(1000)
-                .result(transactionService.updateTransaction(id, request, orderId))
+                .result(transactionService.processTransaction(orderId, request))
                 .build();
     }
 

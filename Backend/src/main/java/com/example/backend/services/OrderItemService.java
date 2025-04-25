@@ -65,9 +65,11 @@ public class OrderItemService {
     }
 
     public void deleteOrderItem (String id) {
-        if (!orderItemRepository.existsById(id)) {
-            throw new AppException(ErrorCode.ORDER_ITEM_NOT_FOUND);
-        }
+        OrderItem orderItem = orderItemRepository.findById(id);
+        Orders orders = orderItem.getOrders();
+        orders.setTotalAmount(orders.getTotalAmount() - orderItem.getQuantity() * orderItem.getProduct().getPrice());
+        orders.getOrderItems().remove(orderItem);
+        ordersRepository.saveOrder(orders);
         orderItemRepository.deleteOrderItem(id);
     }
 

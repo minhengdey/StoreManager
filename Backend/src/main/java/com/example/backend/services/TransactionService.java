@@ -13,13 +13,16 @@ import com.example.backend.repositories.OrdersRepository;
 import com.example.backend.repositories.ProductRepository;
 import com.example.backend.repositories.TransactionRepository;
 import com.example.backend.utils.IdGenerator;
+import com.example.backend.utils.PaymentSimulator;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -31,9 +34,12 @@ public class TransactionService {
     OrdersRepository ordersRepository;
     ProductRepository productRepository;
 
+    public TransactionResponse getById (String id) {
+        return transactionMapper.toResponse(transactionRepository.getById(id));
+    }
 
-    @Transactional
-    public TransactionResponse addTransaction (TransactionRequest request, String orderId) {
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = AppException.class)
+    public TransactionResponse processTransaction (String orderId, TransactionRequest request) {
         Orders orders = ordersRepository.findById(orderId);
         Transaction transaction = transactionMapper.toTransaction(request);
         String id = IdGenerator.generateId("TRS");
@@ -45,30 +51,28 @@ public class TransactionService {
         transaction.setStatus(StatusOrder.PENDING);
         transaction.setOrders(orders);
 
-        return transactionMapper.toResponse(transactionRepository.addTransaction(transaction));
-    }
-
-    @Transactional
-    public TransactionResponse updateTransaction (String id, TransactionRequest request, String orderId) {
-        Orders orders = ordersRepository.findById(orderId);
-        Transaction transaction = transactionRepository.getById(id);
-        transactionMapper.update(transaction, request);
-        if (transaction.getStatus().equals(StatusOrder.FAILED)) {
-            transactionRepository.saveTransaction(transaction);
-
-            throw new AppException(ErrorCode.TRANSACTION_FAILED);
-        }
-        if (request.getStatus().equals(StatusOrder.SUCCESS)) {
-            for (OrderItem orderItem : orders.getOrderItems()) {
+        boolean isSuccess = PaymentSimulator.mockPayment(request.getPaymentMethod());
+        System.out.println(isSuccess);
+        if (isSuccess) {
+            List<OrderItem> list = orders.getOrderItems();
+            for (OrderItem orderItem : list) {
+                if (orderItem.getQuantity() > orderItem.getProduct().getStockQuantity()) {
+                    transaction.setStatus(StatusOrder.FAILED);
+                    transactionRepository.addTransaction(transaction);
+                    throw new AppException(ErrorCode.TRANSACTION_FAILED);
+                }
+            }
+            for (OrderItem orderItem : list) {
                 orderItem.getProduct().setStockQuantity(orderItem.getProduct().getStockQuantity() - orderItem.getQuantity());
                 productRepository.saveProduct(orderItem.getProduct());
-
             }
+        } else {
+            transaction.setStatus(StatusOrder.FAILED);
+            transactionRepository.addTransaction(transaction);
+            throw new AppException(ErrorCode.TRANSACTION_FAILED);
         }
-        return transactionMapper.toResponse(transactionRepository.saveTransaction(transaction));
-    }
+        transaction.setStatus(StatusOrder.SUCCESS);
 
-    public TransactionResponse getById (String id) {
-        return transactionMapper.toResponse(transactionRepository.getById(id));
+        return transactionMapper.toResponse(transactionRepository.addTransaction(transaction));
     }
 }

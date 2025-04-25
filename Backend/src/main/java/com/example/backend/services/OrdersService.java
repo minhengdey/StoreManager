@@ -26,7 +26,6 @@ public class OrdersService {
     OrdersMapper ordersMapper;
     CustomerRepository customerRepository;
 
-    @Transactional
     public OrdersResponse createOrders (String customerId) {
         Customer customer = customerRepository.findById(customerId);
         Orders orders = new Orders();
