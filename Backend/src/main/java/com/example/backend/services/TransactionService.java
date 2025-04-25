@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -41,6 +42,9 @@ public class TransactionService {
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = AppException.class)
     public TransactionResponse processTransaction (String orderId, TransactionRequest request) {
         Orders orders = ordersRepository.findById(orderId);
+        if (orders.getTotalAmount() == 0) {
+            throw new AppException(ErrorCode.EMPTY_ORDER_ITEM);
+        }
         Transaction transaction = transactionMapper.toTransaction(request);
         String id = IdGenerator.generateId("TRS");
         while (transactionRepository.existsById(id)) {
@@ -55,15 +59,23 @@ public class TransactionService {
         System.out.println(isSuccess);
         if (isSuccess) {
             List<OrderItem> list = orders.getOrderItems();
+            List<Integer> productsQuantity = new ArrayList<>();
             for (OrderItem orderItem : list) {
                 if (orderItem.getQuantity() > orderItem.getProduct().getStockQuantity()) {
                     transaction.setStatus(StatusOrder.FAILED);
                     transactionRepository.addTransaction(transaction);
                     throw new AppException(ErrorCode.TRANSACTION_FAILED);
                 }
+                productsQuantity.add(orderItem.getProduct().getStockQuantity() - orderItem.getQuantity());
             }
+            int count = 0;
             for (OrderItem orderItem : list) {
-                orderItem.getProduct().setStockQuantity(orderItem.getProduct().getStockQuantity() - orderItem.getQuantity());
+                if (orderItem.getQuantity() > orderItem.getProduct().getStockQuantity()) {
+                    transaction.setStatus(StatusOrder.FAILED);
+                    transactionRepository.addTransaction(transaction);
+                    throw new AppException(ErrorCode.TRANSACTION_FAILED);
+                }
+                orderItem.getProduct().setStockQuantity(productsQuantity.get(count ++));
                 productRepository.saveProduct(orderItem.getProduct());
             }
         } else {
@@ -72,6 +84,8 @@ public class TransactionService {
             throw new AppException(ErrorCode.TRANSACTION_FAILED);
         }
         transaction.setStatus(StatusOrder.SUCCESS);
+        orders.setTotalAmount(0F);
+        ordersRepository.saveOrder(orders);
 
         return transactionMapper.toResponse(transactionRepository.addTransaction(transaction));
     }

@@ -10,8 +10,6 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.*;
 
@@ -23,7 +21,6 @@ public class TransactionRepository {
     DatabaseConfig databaseConfig;
     OrdersRepository ordersRepository;
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = AppException.class)
     public Transaction addTransaction (Transaction transaction) {
         String sql = "INSERT INTO STOREMANAGER.TRANSACTIONS (ID, ORDERS_ID, TRANSACTION_DATE, STATUS, PAYMENT_METHOD) VALUES (?, ?, ?, ?, ?)";
 
