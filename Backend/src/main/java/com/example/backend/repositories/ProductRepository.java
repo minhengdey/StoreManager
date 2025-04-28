@@ -4,6 +4,7 @@ import com.example.backend.configs.DatabaseConfig;
 import com.example.backend.dto.request.ProductRequest;
 import com.example.backend.enums.ErrorCode;
 import com.example.backend.exceptions.AppException;
+import com.example.backend.models.OrderItem;
 import com.example.backend.models.Product;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -64,6 +65,45 @@ public class ProductRepository {
             }
         } catch (SQLException e) {
             throw new AppException(ErrorCode.CONNECT_ERROR);
+        }
+    }
+
+    public void processTransaction (List<OrderItem> orderItems) throws SQLException {
+        Connection connection = databaseConfig.getConnection();
+        connection.setAutoCommit(false);
+        try {
+            for (OrderItem orderItem : orderItems) {
+                String productId = orderItem.getProduct().getId();
+                int orderQuantity = orderItem.getQuantity();
+
+                // Lock product row for update
+                PreparedStatement stmt = connection.prepareStatement("SELECT STOCK_QUANTITY FROM STOREMANAGER.PRODUCTS WHERE ID = ? FOR UPDATE");
+                stmt.setString(1, productId);
+                ResultSet rs = stmt.executeQuery();
+
+                if (rs.next()) {
+                    int stockQuantity = rs.getInt("STOCK_QUANTITY");
+
+                    // Kiểm tra tồn kho, nếu không đủ thì rollback và throw exception
+                    if (stockQuantity < orderQuantity) {
+                        connection.rollback();
+                        throw new AppException(ErrorCode.STOCK_EMPTY);
+                    }
+
+                    // Trừ số lượng tồn kho
+                    PreparedStatement updateStmt = connection.prepareStatement("UPDATE STOREMANAGER.PRODUCTS SET STOCK_QUANTITY = STOCK_QUANTITY - ? WHERE ID = ?");
+                    updateStmt.setInt(1, orderQuantity);
+                    updateStmt.setString(2, productId);
+                    updateStmt.executeUpdate();
+                }
+            }
+
+            connection.commit();  // Commit nếu tất cả các sản phẩm đều được xử lý thành công
+        } catch (SQLException e) {
+            connection.rollback();  // Rollback nếu có lỗi
+            throw new AppException(ErrorCode.TRANSACTION_FAILED);
+        } finally {
+            connection.close();  // Đảm bảo đóng kết nối sau khi hoàn thành
         }
     }
 

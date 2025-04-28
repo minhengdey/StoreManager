@@ -25,7 +25,8 @@ public enum ErrorCode {
     ORDER_NOT_FOUND(1009, "Order not found", HttpStatus.NOT_FOUND),
     TRANSACTION_NOT_FOUND(1010, "Transaction not found", HttpStatus.NOT_FOUND),
     TRANSACTION_FAILED(1011, "Transaction failed", HttpStatus.BAD_REQUEST),
-    EMPTY_ORDER_ITEM(1012, "Empty order item", HttpStatus.NOT_FOUND);
+    EMPTY_ORDER_ITEM(1012, "Empty order item", HttpStatus.NOT_FOUND),
+    STOCK_EMPTY(1013, "Stock empty", HttpStatus.NOT_FOUND);
 
     int code;
     String message;

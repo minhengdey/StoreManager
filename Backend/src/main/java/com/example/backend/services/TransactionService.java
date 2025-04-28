@@ -8,6 +8,7 @@ import com.example.backend.exceptions.AppException;
 import com.example.backend.mappers.TransactionMapper;
 import com.example.backend.models.OrderItem;
 import com.example.backend.models.Orders;
+import com.example.backend.models.Product;
 import com.example.backend.models.Transaction;
 import com.example.backend.repositories.OrdersRepository;
 import com.example.backend.repositories.ProductRepository;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,9 +42,9 @@ public class TransactionService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = AppException.class)
-    public TransactionResponse processTransaction (String orderId, TransactionRequest request) {
+    public TransactionResponse processTransaction (String orderId, TransactionRequest request) throws SQLException {
         Orders orders = ordersRepository.findById(orderId);
-        if (orders.getTotalAmount() == 0) {
+        if (orders.getOrderItems().isEmpty()) {
             throw new AppException(ErrorCode.EMPTY_ORDER_ITEM);
         }
         Transaction transaction = transactionMapper.toTransaction(request);
@@ -58,34 +60,25 @@ public class TransactionService {
         boolean isSuccess = PaymentSimulator.mockPayment(request.getPaymentMethod());
         System.out.println(isSuccess);
         if (isSuccess) {
-            List<OrderItem> list = orders.getOrderItems();
-            List<Integer> productsQuantity = new ArrayList<>();
-            for (OrderItem orderItem : list) {
-                if (orderItem.getQuantity() > orderItem.getProduct().getStockQuantity()) {
-                    transaction.setStatus(StatusOrder.FAILED);
-                    transactionRepository.addTransaction(transaction);
-                    throw new AppException(ErrorCode.TRANSACTION_FAILED);
+            try {
+                productRepository.processTransaction(orders.getOrderItems());
+                for (OrderItem orderItem : orders.getOrderItems()) {
+                    orderItem.setProduct(productRepository.findById(orderItem.getProduct().getId()));
                 }
-                productsQuantity.add(orderItem.getProduct().getStockQuantity() - orderItem.getQuantity());
-            }
-            int count = 0;
-            for (OrderItem orderItem : list) {
-                if (orderItem.getQuantity() > orderItem.getProduct().getStockQuantity()) {
-                    transaction.setStatus(StatusOrder.FAILED);
-                    transactionRepository.addTransaction(transaction);
-                    throw new AppException(ErrorCode.TRANSACTION_FAILED);
-                }
-                orderItem.getProduct().setStockQuantity(productsQuantity.get(count ++));
-                productRepository.saveProduct(orderItem.getProduct());
+            } catch (AppException e) {
+                transaction.setStatus(StatusOrder.FAILED);
+                transactionRepository.addTransaction(transaction);
+                throw e;
             }
         } else {
             transaction.setStatus(StatusOrder.FAILED);
             transactionRepository.addTransaction(transaction);
             throw new AppException(ErrorCode.TRANSACTION_FAILED);
         }
-        transaction.setStatus(StatusOrder.SUCCESS);
-        orders.setTotalAmount(0F);
-        ordersRepository.saveOrder(orders);
+        if (transaction.getStatus().equals(StatusOrder.PENDING)) {
+            transaction.setStatus(StatusOrder.SUCCESS);
+            ordersRepository.saveOrder(orders);
+        }
 
         return transactionMapper.toResponse(transactionRepository.addTransaction(transaction));
     }
