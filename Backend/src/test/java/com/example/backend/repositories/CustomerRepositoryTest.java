@@ -6,9 +6,11 @@ import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -19,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CustomerRepositoryTest {
     @Mock
@@ -34,8 +37,7 @@ public class CustomerRepositoryTest {
     Customer customer;
 
     @BeforeEach
-    void setUp() throws SQLException {
-        MockitoAnnotations.openMocks(this);
+    public void setUp() throws SQLException {
 
         customer = new Customer("CTM-123aaa", "John Doe", "123456789", "john.doe@example.com");
 
@@ -44,7 +46,7 @@ public class CustomerRepositoryTest {
     }
 
     @Test
-    void testAddCustomer() throws SQLException {
+    public void testAddCustomer() throws SQLException {
         when(preparedStatement.executeUpdate()).thenReturn(1);
 
         Customer result = customerRepository.addCustomer(customer);
@@ -53,4 +55,17 @@ public class CustomerRepositoryTest {
         assertEquals("CTM-123aaa", result.getId());
         verify(preparedStatement, times(1)).executeUpdate();
     }
+
+    @Test
+    public void testExistsById_CustomerExists() throws SQLException {
+        when(preparedStatement.executeQuery()).thenReturn(resultSet);
+        when(resultSet.next()).thenReturn(true);
+
+        boolean exists = customerRepository.existsById("CTM-21");
+        System.out.println(exists);
+
+        assertTrue(exists);
+        verify(preparedStatement, times(1)).executeQuery();
+    }
+
 }
