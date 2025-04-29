@@ -2,6 +2,8 @@ package com.example.backend.services;
 
 import com.example.backend.dto.request.CustomerRequest;
 import com.example.backend.dto.response.CustomerResponse;
+import com.example.backend.enums.ErrorCode;
+import com.example.backend.exceptions.AppException;
 import com.example.backend.mappers.CustomerMapper;
 import com.example.backend.models.Customer;
 import com.example.backend.repositories.CustomerRepository;
@@ -74,6 +76,18 @@ public class CustomerServiceTest {
 
         assertEquals(expected, actual);
         verify(customerRepository).findById(id);
+    }
+
+    @Test
+    void getCustomerById_NotFound_ThrowAppException () {
+        String id = "CTM-112233";
+
+        when(customerRepository.findById(id)).thenThrow(new AppException(ErrorCode.CUSTOMER_NOT_FOUND));
+
+        AppException ex = assertThrows(AppException.class,
+                () -> customerService.getCustomerById(id));
+
+        assertEquals(ErrorCode.CUSTOMER_NOT_FOUND, ex.getErrorCode());
     }
 
     @Test
