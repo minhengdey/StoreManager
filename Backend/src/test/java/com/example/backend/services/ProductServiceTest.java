@@ -2,6 +2,8 @@ package com.example.backend.services;
 
 import com.example.backend.dto.request.ProductRequest;
 import com.example.backend.dto.response.ProductResponse;
+import com.example.backend.enums.ErrorCode;
+import com.example.backend.exceptions.AppException;
 import com.example.backend.mappers.ProductMapper;
 import com.example.backend.models.Product;
 import com.example.backend.repositories.ProductRepository;
@@ -17,6 +19,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -59,5 +62,15 @@ public class ProductServiceTest {
             assertEquals(expected, actual);
             verify(productRepository).addProduct(product);
         }
+    }
+
+    @Test
+    void addProduct_ExistsByName_ThrowAppException () {
+        ProductRequest request = new ProductRequest("Keo", 10.5F, 20);
+        when(productRepository.existsByName(request.getName())).thenReturn(true);
+
+        AppException exception = assertThrows(AppException.class, () -> productService.addProduct(request));
+
+        assertEquals(ErrorCode.PRODUCT_EXISTED, exception.getErrorCode());
     }
 }
