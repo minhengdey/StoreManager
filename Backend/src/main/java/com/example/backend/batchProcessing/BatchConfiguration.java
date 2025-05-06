@@ -18,6 +18,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import javax.sql.DataSource;
 
@@ -73,15 +74,14 @@ public class BatchConfiguration {
         return new DataSourceTransactionManager(dataSource);
     }
 
-    @Bean
-    public CommandLineRunner run(JobLauncher jobLauncher, Job importUserJob) {
-        return args -> {
-            JobParameters jobParameters = new JobParametersBuilder()
-                    .addLong("time", System.currentTimeMillis())
-                    .toJobParameters();
-            jobLauncher.run(importUserJob, jobParameters);
-        };
-    }
-
+//    @Bean
+//    public CommandLineRunner run(JobLauncher jobLauncher, Job importUserJob) {
+//        return args -> {
+//            JobParameters jobParameters = new JobParametersBuilder()
+//                    .addLong("time", System.currentTimeMillis())
+//                    .toJobParameters();
+//            jobLauncher.run(importUserJob, jobParameters);
+//        };
+//    }
 
 }
