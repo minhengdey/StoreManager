@@ -106,4 +106,29 @@ public class ProductServiceTest {
 
         assertEquals(ErrorCode.PRODUCT_NOT_FOUND, exception.getErrorCode());
     }
+
+    @Test
+    void findByName_ShouldReturnResponse () {
+        Product product = new Product(id, request.getName(), request.getPrice(), request.getStockQuantity());
+        when(productRepository.findByName(product.getName())).thenReturn(product);
+
+        ProductResponse expected = new ProductResponse(product.getId(), product.getName(),
+                product.getPrice(), product.getStockQuantity());
+        when(productMapper.toResponse(product)).thenReturn(expected);
+
+        ProductResponse actual = productService.findByName(product.getName());
+
+        assertEquals(expected, actual);
+        verify(productRepository).findByName(product.getName());
+    }
+
+    @Test
+    void findByName_NotFound_ThrowAppException () {
+        when(productRepository.findByName(request.getName())).thenThrow(new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+
+        AppException exception = assertThrows(AppException.class,
+                () -> productRepository.findByName(request.getName()));
+
+        assertEquals(ErrorCode.PRODUCT_NOT_FOUND, exception.getErrorCode());
+    }
 }
