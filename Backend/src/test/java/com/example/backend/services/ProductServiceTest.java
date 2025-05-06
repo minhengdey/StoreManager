@@ -21,8 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -102,7 +101,7 @@ public class ProductServiceTest {
         when(productRepository.findById(id)).thenThrow(new AppException(ErrorCode.PRODUCT_NOT_FOUND));
 
         AppException exception = assertThrows(AppException.class,
-                () -> productRepository.findById(id));
+                () -> productService.findById(id));
 
         assertEquals(ErrorCode.PRODUCT_NOT_FOUND, exception.getErrorCode());
     }
@@ -127,8 +126,48 @@ public class ProductServiceTest {
         when(productRepository.findByName(request.getName())).thenThrow(new AppException(ErrorCode.PRODUCT_NOT_FOUND));
 
         AppException exception = assertThrows(AppException.class,
-                () -> productRepository.findByName(request.getName()));
+                () -> productService.findByName(request.getName()));
 
         assertEquals(ErrorCode.PRODUCT_NOT_FOUND, exception.getErrorCode());
+    }
+
+    @Test
+    void updateProduct_ShouldReturnResponse () {
+        Product product = new Product(id, request.getName(), request.getPrice(), request.getStockQuantity());
+        when(productRepository.findById(id)).thenReturn(product);
+        when(productRepository.existsByName(request.getName())).thenReturn(false);
+        doNothing().when(productMapper).update(product, request);
+        when(productRepository.saveProduct(product)).thenReturn(product);
+
+        ProductResponse expected = new ProductResponse(id, request.getName(), request.getPrice(), request.getStockQuantity());
+        when(productMapper.toResponse(product)).thenReturn(expected);
+
+        ProductResponse actual = productService.updateProduct(request, id);
+
+        assertEquals(expected, actual);
+        verify(productRepository).saveProduct(product);
+    }
+
+    @Test
+    void updateProduct_NotFound_ThrowAppException () {
+        when(productRepository.findById(id)).thenThrow(new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+
+        AppException exception = assertThrows(AppException.class,
+                () -> productService.updateProduct(request, id));
+
+        assertEquals(ErrorCode.PRODUCT_NOT_FOUND, exception.getErrorCode());
+    }
+
+    @Test
+    void updateProduct_ExistsByName_ThrowAppException () {
+        Product product = new Product(id, request.getName(), request.getPrice(), request.getStockQuantity());
+        when(productRepository.findById(id)).thenReturn(product);
+
+        when(productRepository.existsByName(request.getName())).thenReturn(true);
+
+        AppException exception = assertThrows(AppException.class,
+                () -> productService.updateProduct(request, id));
+
+        assertEquals(ErrorCode.PRODUCT_EXISTED, exception.getErrorCode());
     }
 }
