@@ -10,6 +10,7 @@ import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
 import java.util.List;
 
 @Component
@@ -28,8 +29,10 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
             List<Product> list = productRepository.getAllProduct();
 
             for (Product product : list) {
-                log.info("Found <{}> in the database.", product);
+                log.info("Found <{}> in the database.", product.getId());
             }
+
+            log.info(String.valueOf(new Date()));
         }
     }
 }

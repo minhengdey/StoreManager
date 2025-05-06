@@ -19,7 +19,7 @@ public class ImportDataScheduler {
     @Autowired
     private Job importUserJob;
 
-    @Scheduled(cron = "0 56 15 * * ?")
+    @Scheduled(cron = "0 0 8 * * ?")
     public void runImportData () {
         try {
             JobParameters jobParameters = new JobParametersBuilder()

@@ -17,8 +17,10 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import javax.sql.DataSource;
 
@@ -28,7 +30,7 @@ public class BatchConfiguration {
     public FlatFileItemReader<Product> reader () {
         return new FlatFileItemReaderBuilder<Product>()
                 .name("productItemReader")
-                .resource(new ClassPathResource("product.csv"))
+                .resource(new ClassPathResource("product_1000000.csv"))
                 .delimited()
                 .names("id", "name", "price", "stockQuantity")
                 .targetType(Product.class)
@@ -62,10 +64,11 @@ public class BatchConfiguration {
     public Step step1 (JobRepository jobRepository, DataSourceTransactionManager transactionManager,
                        FlatFileItemReader<Product> reader, ProductItemProcessor processor, JdbcBatchItemWriter<Product> writer) {
         return new StepBuilder("step1", jobRepository)
-                .<Product, Product>chunk(3, transactionManager)
+                .<Product, Product>chunk(1000, transactionManager)
                 .reader(reader)
                 .processor(processor)
                 .writer(writer)
+                .taskExecutor(taskExecutor())
                 .build();
     }
 
@@ -73,6 +76,18 @@ public class BatchConfiguration {
     public DataSourceTransactionManager transactionManager(DataSource dataSource) {
         return new DataSourceTransactionManager(dataSource);
     }
+
+    @Bean
+    public TaskExecutor taskExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(5);          // Số thread tối thiểu luôn giữ
+        executor.setMaxPoolSize(10);          // Số thread tối đa
+        executor.setQueueCapacity(25);        // Hàng đợi task khi các thread đang bận
+        executor.setThreadNamePrefix("batch_");
+        executor.initialize();
+        return executor;
+    }
+// cho chạy ngay khi chạy chương trình
 
 //    @Bean
 //    public CommandLineRunner run(JobLauncher jobLauncher, Job importUserJob) {

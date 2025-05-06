@@ -33,3 +33,6 @@ build/
 .vscode/
 
 .env
+product_3000.csv
+product_100000.csv
+product_1000000.csv
