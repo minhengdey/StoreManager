@@ -19,6 +19,8 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
@@ -188,5 +190,27 @@ public class ProductServiceTest {
                 () -> productService.deleteProduct(id));
 
         assertEquals(ErrorCode.PRODUCT_NOT_FOUND, exception.getErrorCode());
+    }
+
+    @Test
+    void getAllProduct_ShouldReturnList () {
+        int page = 1;
+        int pageSize = 2;
+
+        Product product1 = new Product(id, request.getName(), request.getPrice(), request.getStockQuantity());
+        Product product2 = new Product("PRD-111111", "Banh", 20F, 30);
+
+        when(productRepository.getAllProduct(page, pageSize)).thenReturn(List.of(product1, product2));
+        ProductResponse response1 = new ProductResponse(id, request.getName(), request.getPrice(), request.getStockQuantity());
+        ProductResponse response2 = new ProductResponse("PRD-111111", "Banh", 20F, 30);
+
+        when(productMapper.toResponse(product1)).thenReturn(response1);
+        when(productMapper.toResponse(product2)).thenReturn(response2);
+
+        List<ProductResponse> expected = List.of(response1, response2);
+
+        List<ProductResponse> actual = productService.getAllProduct(page, pageSize);
+
+        assertEquals(expected, actual);
     }
 }
