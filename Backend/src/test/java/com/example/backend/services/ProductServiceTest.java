@@ -170,4 +170,23 @@ public class ProductServiceTest {
 
         assertEquals(ErrorCode.PRODUCT_EXISTED, exception.getErrorCode());
     }
+
+    @Test
+    void deleteProduct_ShouldCallRepository () {
+        when(productRepository.existsById(id)).thenReturn(true);
+        doNothing().when(productRepository).deleteProduct(id);
+
+        productService.deleteProduct(id);
+        verify(productRepository).deleteProduct(id);
+    }
+
+    @Test
+    void deleteProduct_NotFound_ThrowAppException () {
+        when(productRepository.existsById(id)).thenReturn(false);
+
+        AppException exception = assertThrows(AppException.class,
+                () -> productService.deleteProduct(id));
+
+        assertEquals(ErrorCode.PRODUCT_NOT_FOUND, exception.getErrorCode());
+    }
 }
