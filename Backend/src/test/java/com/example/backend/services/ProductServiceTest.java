@@ -10,6 +10,7 @@ import com.example.backend.repositories.ProductRepository;
 import com.example.backend.utils.IdGenerator;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -34,9 +35,17 @@ public class ProductServiceTest {
     @InjectMocks
     ProductService productService;
 
+    ProductRequest request;
+    String id;
+
+    @BeforeEach
+    void setup () {
+        request = new ProductRequest("Keo", 10.5F, 20);
+        id = "PRD-123AAA";
+    }
+
     @Test
     void addProduct_ShouldReturnResponse () {
-        ProductRequest request = new ProductRequest("Keo", 10.5F, 20);
         when(productRepository.existsByName(request.getName())).thenReturn(false);
 
         Product product = new Product();
@@ -46,10 +55,10 @@ public class ProductServiceTest {
         when(productMapper.toProduct(request)).thenReturn(product);
 
         try (MockedStatic<IdGenerator> mockIdGen = Mockito.mockStatic(IdGenerator.class)) {
-            mockIdGen.when(() -> IdGenerator.generateId("PRD")).thenReturn("PRD-123AAA");
+            mockIdGen.when(() -> IdGenerator.generateId("PRD")).thenReturn(id);
 
-            when(productRepository.existsById("PRD-123AAA")).thenReturn(false);
-            product.setId("PRD-123AAA");
+            when(productRepository.existsById(id)).thenReturn(false);
+            product.setId(id);
 
             when(productRepository.addProduct(product)).thenReturn(product);
 
@@ -66,11 +75,35 @@ public class ProductServiceTest {
 
     @Test
     void addProduct_ExistsByName_ThrowAppException () {
-        ProductRequest request = new ProductRequest("Keo", 10.5F, 20);
         when(productRepository.existsByName(request.getName())).thenReturn(true);
 
         AppException exception = assertThrows(AppException.class, () -> productService.addProduct(request));
 
         assertEquals(ErrorCode.PRODUCT_EXISTED, exception.getErrorCode());
+    }
+
+    @Test
+    void findById_ShouldReturnResponse () {
+        Product product = new Product(id, request.getName(), request.getPrice(), request.getStockQuantity());
+        when(productRepository.findById(id)).thenReturn(product);
+
+        ProductResponse expected = new ProductResponse(product.getId(), product.getName(),
+                product.getPrice(), product.getStockQuantity());
+        when(productMapper.toResponse(product)).thenReturn(expected);
+
+        ProductResponse actual = productService.findById(id);
+
+        assertEquals(expected, actual);
+        verify(productRepository).findById(id);
+    }
+
+    @Test
+    void findById_NotFound_ThrowAppException () {
+        when(productRepository.findById(id)).thenThrow(new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+
+        AppException exception = assertThrows(AppException.class,
+                () -> productRepository.findById(id));
+
+        assertEquals(ErrorCode.PRODUCT_NOT_FOUND, exception.getErrorCode());
     }
 }
