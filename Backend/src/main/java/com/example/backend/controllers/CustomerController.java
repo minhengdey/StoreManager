@@ -13,14 +13,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping(value = "/customer")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class CustomerController {
 
     CustomerService customerService;
 
-    @PostMapping()
+    @PostMapping(value = "/customer")
     public ApiResponse<CustomerResponse> addCustomer (@Valid @RequestBody CustomerRequest request) {
         return ApiResponse.<CustomerResponse>builder()
                 .code(1000)
@@ -28,7 +27,7 @@ public class CustomerController {
                 .build();
     }
 
-    @GetMapping(value = "/{id}")
+    @GetMapping(value = "/customer/{id}")
     public ApiResponse<CustomerResponse> getCustomerById (@PathVariable("id") String id) {
         return ApiResponse.<CustomerResponse>builder()
                 .code(1000)
@@ -36,7 +35,7 @@ public class CustomerController {
                 .build();
     }
 
-    @PutMapping(value = "/{id}")
+    @PutMapping(value = "/customer/{id}")
     public ApiResponse<CustomerResponse> updateCustomer (@Valid @RequestBody CustomerRequest request, @PathVariable("id") String id) {
         return ApiResponse.<CustomerResponse>builder()
                 .code(1000)
@@ -44,12 +43,12 @@ public class CustomerController {
                 .build();
     }
 
-    @DeleteMapping(value = "/{id}")
+    @DeleteMapping(value = "/customer/{id}")
     public void deleteCustomer (@PathVariable("id") String id) {
         customerService.deleteCustomer(id);
     }
 
-    @GetMapping(value = "/all")
+    @GetMapping(value = "/customers")
     public ApiResponse<List<CustomerResponse>> getAllCustomer (@RequestParam("page") int page, @RequestParam("pageSize") int pageSize) {
         return ApiResponse.<List<CustomerResponse>>builder()
                 .code(1000)
