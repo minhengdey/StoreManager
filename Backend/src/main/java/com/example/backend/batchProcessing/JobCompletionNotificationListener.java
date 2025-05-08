@@ -21,6 +21,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
     private ProductRepository productRepository;
 
     @Override
+    // lắng nghe sự kiện sau khi xong job
     public void afterJob(JobExecution jobExecution) {
         log.info(jobExecution.getStatus().name());
         if (jobExecution.getStatus().equals(BatchStatus.COMPLETED)) {
@@ -28,6 +29,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
 
             List<Product> list = productRepository.getAllProduct();
 
+            // log ra các product vừa được thêm vào DB
             for (Product product : list) {
                 log.info("Found <{}> in the database.", product.getId());
             }

@@ -14,6 +14,7 @@ public class ProductItemProcessor implements ItemProcessor<Product, Product> {
 
     @Override
     public Product process(Product product) throws Exception {
+        // validation dữ liệu đầu vào, nếu không thỏa mãn thì bắn ra ValidationException để bên SkipListener lắng nghe, skip và cho vào file invalid product
         if (isValidId(product.getId()) && isValidName(product.getName()) && product.getPrice() > 0 && product.getStockQuantity() > 0) {
             String name = product.getName().toUpperCase();
 

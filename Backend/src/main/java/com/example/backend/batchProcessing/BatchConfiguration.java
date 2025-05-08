@@ -34,25 +34,26 @@ import java.util.List;
 @Configuration
 public class BatchConfiguration {
     @Bean
-    public FlatFileItemReader<Product> reader () {
+    public FlatFileItemReader<Product> reader () { // đọc file csv đầu vào
         return new FlatFileItemReaderBuilder<Product>()
                 .name("productItemReader")
                 .resource(new ClassPathResource("product_100.csv"))
-                .delimited()
+                .delimited() // dữ liệu phân cách bằng dấu phẩy
                 .names("id", "name", "price", "stockQuantity")
                 .targetType(Product.class)
-                .linesToSkip(1)
+                .linesToSkip(1) // skip 1 dòng header
                 .build();
     }
 
     @Bean
+    // viết các product invalid vào file csv (tạm thời không dùng vì phải quản lý open, close ExecutionContext)
     public FlatFileItemWriter<Product> invalidItemWriter () {
         return new FlatFileItemWriterBuilder<Product>()
                 .name("invalid_products.csv")
                 .encoding("UTF-8")
                 .lineAggregator(new DelimitedLineAggregator<>() {{
-                    setDelimiter(",");
-                    setFieldExtractor(product -> new Object[] {
+                    setDelimiter(","); // đặt dấu phẩy ngăn cách các cột dữ liệu
+                    setFieldExtractor(product -> new Object[] { // các cột dữ liệu
                             product.getId(),
                             product.getName(),
                             product.getPrice(),
@@ -60,18 +61,20 @@ public class BatchConfiguration {
                             "INVALID"
                     });
                 }})
-                .headerCallback(w -> w.write("id,name,price,stockQuantity"))
-                .append(true)
+                .headerCallback(w -> w.write("id,name,price,stockQuantity")) // viết header
+                .append(true) // cho phép append
                 .build();
     }
 
     @Bean
-    public SkipListener<Product, Product> skipListener (FlatFileItemWriter<Product> invalidItemWriter) {
+    // skip những dữ liệu không hợp lệ (catch từ Exception trong ProductItemProcessor.class)
+    public SkipListener<Product, Product> skipListener () {
         return new SkipListener<>() {
             final Path invalidFilePath = Paths.get("invalid_products.csv");
 
             @Override
             public void onSkipInProcess(Product item, Throwable t) {
+                // tạo file csv để điền các product invalid
                 try (BufferedWriter writer = Files.newBufferedWriter(invalidFilePath, StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
                     writer.write(String.format("%s,%s,%s,%s,INVALID\n",
                             item.getId(),
@@ -86,6 +89,7 @@ public class BatchConfiguration {
             @Override
             public void onSkipInWrite(Product item, Throwable t) {
                 try {
+                    // catch luôn exception từ onSkipInProcess
                     onSkipInProcess(item, t);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -100,11 +104,13 @@ public class BatchConfiguration {
     }
 
     @Bean
+    // kiểm soát dữ liệu đầu vào
     public ProductItemProcessor processor () {
         return new ProductItemProcessor();
     }
 
     @Bean
+    // insert các dữ liệu hợp lệ vào DB
     public JdbcBatchItemWriter<Product> writer (DataSource dataSource) {
         return new JdbcBatchItemWriterBuilder<Product>()
                 .sql("INSERT INTO STOREMANAGER.PRODUCTS (ID, NAME, PRICE, STOCK_QUANTITY) VALUES (:id, :name, :price, :stockQuantity)")
@@ -114,26 +120,28 @@ public class BatchConfiguration {
     }
 
     @Bean
+    // khởi tạo job batch
     public Job importUserJob (JobRepository jobRepository, Step step1, JobCompletionNotificationListener listener) {
-        return new JobBuilder("importUserJob", jobRepository)
-                .listener(listener)
-                .start(step1)
+        return new JobBuilder("importUserJob", jobRepository) // tạo job tên là importUserJob
+                .listener(listener) // lắng nghe các sự kiện của job (before, after,...)
+                .start(step1) // bắt đầu với step1
                 .build();
     }
 
     @Bean
+    // khởi tạo step1
     public Step step1 (JobRepository jobRepository, DataSourceTransactionManager transactionManager,
                        FlatFileItemReader<Product> reader, ProductItemProcessor processor, JdbcBatchItemWriter<Product> writer,
                        SkipListener<Product, Product> skipListener) {
         return new StepBuilder("step1", jobRepository)
-                .<Product, Product>chunk(1000, transactionManager)
+                .<Product, Product>chunk(1000, transactionManager) // xử lý theo từng chunk (1000), xong 1 chunk thì commit lên 1 lần rồi tiếp tục xử lý chunk tiếp theo
                 .reader(reader)
                 .processor(processor)
                 .writer(writer)
-                .taskExecutor(taskExecutor())
-                .faultTolerant()
-                .skip(Exception.class)
-                .skipLimit(1000)
+                .taskExecutor(taskExecutor()) // đa luồng
+                .faultTolerant() // cho phép skip khi có lỗi
+                .skip(Exception.class) // sẽ skip các dữ liệu bị catch Exception
+                .skipLimit(1000) // số lượng skip tối đa
                 .listener(skipListener)
                 .build();
     }
@@ -145,6 +153,7 @@ public class BatchConfiguration {
 
     @Bean
     public TaskExecutor taskExecutor() {
+        // dùng thread pool tái sử dụng luồng -> đỡ tốn tài nguyên
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(5);          // Số thread tối thiểu luôn giữ
         executor.setMaxPoolSize(10);          // Số thread tối đa
@@ -153,8 +162,8 @@ public class BatchConfiguration {
         executor.initialize();
         return executor;
     }
-// cho chạy ngay khi chạy chương trình
 
+// cho chạy ngay khi chạy chương trình
 //    @Bean
 //    public CommandLineRunner run(JobLauncher jobLauncher, Job importUserJob) {
 //        return args -> {
