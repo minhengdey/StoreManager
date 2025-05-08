@@ -13,13 +13,12 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping(value = "/product")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class ProductController {
     ProductService productService;
 
-    @PostMapping()
+    @PostMapping(value = "/product")
     public ApiResponse<ProductResponse> addProduct (@Valid @RequestBody ProductRequest request) {
         return ApiResponse.<ProductResponse>builder()
                 .code(1000)
@@ -27,7 +26,7 @@ public class ProductController {
                 .build();
     }
 
-    @GetMapping(value = "/by-id/{id}")
+    @GetMapping(value = "/product/by-id/{id}")
     public ApiResponse<ProductResponse> findById (@PathVariable("id") String id) {
         return ApiResponse.<ProductResponse>builder()
                 .code(1000)
@@ -35,7 +34,7 @@ public class ProductController {
                 .build();
     }
 
-    @GetMapping(value = "/by-name/{name}")
+    @GetMapping(value = "/product/by-name/{name}")
     public ApiResponse<ProductResponse> findByName (@PathVariable("name") String name) {
         return ApiResponse.<ProductResponse>builder()
                 .code(1000)
@@ -43,7 +42,7 @@ public class ProductController {
                 .build();
     }
 
-    @PutMapping(value = "/{id}")
+    @PutMapping(value = "/product/{id}")
     public ApiResponse<ProductResponse> updateById (@PathVariable("id") String id, @Valid @RequestBody ProductRequest request) {
         return ApiResponse.<ProductResponse>builder()
                 .code(1000)
@@ -51,12 +50,12 @@ public class ProductController {
                 .build();
     }
 
-    @DeleteMapping(value = "/{id}")
+    @DeleteMapping(value = "/product/{id}")
     public void deleteByID (@PathVariable("id") String id) {
         productService.deleteProduct(id);
     }
 
-    @GetMapping(value = "/all")
+    @GetMapping(value = "/products")
     public ApiResponse<List<ProductResponse>> getAll (@RequestParam("page") int page, @RequestParam("pageSize") int pageSize) {
         return ApiResponse.<List<ProductResponse>>builder()
                 .code(1000)
