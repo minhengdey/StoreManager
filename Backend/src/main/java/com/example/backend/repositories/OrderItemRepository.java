@@ -51,7 +51,7 @@ public class OrderItemRepository {
     }
 
     public boolean existsById (String id) {
-        String sql = "SELECT * FROM STOREMANAGER.ORDER_ITEM WHERE ID = ?";
+        String sql = "SELECT 1 FROM STOREMANAGER.ORDER_ITEM WHERE ID = ? FETCH FIRST 1 ROWS ONLY";
 
         try (Connection connection = databaseConfig.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {

@@ -13,13 +13,12 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping(value = "/order-item")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class OrderItemController {
     OrderItemService orderItemService;
 
-    @PostMapping(value = "/{productId}/{ordersId}")
+    @PostMapping(value = "/order-item/{productId}/{ordersId}")
     public ApiResponse<OrderItemResponse> addOrderItem (@PathVariable("productId") String productId,
                                                         @PathVariable("ordersId") String ordersId,
                                                         @Valid @RequestBody OrderItemRequest request) {
@@ -29,7 +28,7 @@ public class OrderItemController {
                 .build();
     }
 
-    @GetMapping(value = "/{id}")
+    @GetMapping(value = "/order-item/{id}")
     public ApiResponse<OrderItemResponse> getOrderItemById (@PathVariable("id") String id) {
         return ApiResponse.<OrderItemResponse>builder()
                 .code(1000)
@@ -37,7 +36,7 @@ public class OrderItemController {
                 .build();
     }
 
-    @PutMapping(value = "/{id}")
+    @PutMapping(value = "/order-item/{id}")
     public ApiResponse<OrderItemResponse> updateOrderItem (@Valid @RequestBody OrderItemRequest request, @PathVariable("id") String id) {
         return ApiResponse.<OrderItemResponse>builder()
                 .code(1000)
@@ -45,12 +44,12 @@ public class OrderItemController {
                 .build();
     }
 
-    @DeleteMapping(value = "/{id}")
+    @DeleteMapping(value = "/order-item/{id}")
     public void deleteOrderItem (@PathVariable("id") String id) {
         orderItemService.deleteOrderItem(id);
     }
 
-    @GetMapping(value = "/all-by-productId/{productId}")
+    @GetMapping(value = "/order-items/by-productId/{productId}")
     public ApiResponse<List<OrderItemResponse>> getAllByProductId (@PathVariable("productId") String productId, @RequestParam("page") int page,
                                                                    @RequestParam("pageSize") int pageSize) {
         return ApiResponse.<List<OrderItemResponse>>builder()

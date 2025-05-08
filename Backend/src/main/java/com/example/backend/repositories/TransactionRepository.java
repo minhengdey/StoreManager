@@ -42,7 +42,7 @@ public class TransactionRepository {
     }
 
     public boolean existsById (String id) {
-        String sql = "SELECT * FROM STOREMANAGER.TRANSACTIONS WHERE ID = ?";
+        String sql = "SELECT 1 FROM STOREMANAGER.TRANSACTIONS WHERE ID = ? FETCH FIRST 1 ROWS ONLY";
 
         try (Connection connection = databaseConfig.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {

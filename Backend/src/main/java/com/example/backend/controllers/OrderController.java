@@ -11,13 +11,12 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping(value = "/orders")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class OrderController {
     OrdersService ordersService;
 
-    @PostMapping(value = "/{customerId}")
+    @PostMapping(value = "/order/{customerId}")
     public ApiResponse<OrdersResponse> createOrder (@PathVariable("customerId") String customerId) {
         return ApiResponse.<OrdersResponse>builder()
                 .code(1000)
@@ -25,7 +24,7 @@ public class OrderController {
                 .build();
     }
 
-    @GetMapping(value = "/{id}")
+    @GetMapping(value = "/order/{id}")
     public ApiResponse<OrdersResponse> getById (@PathVariable("id") String id) {
         return ApiResponse.<OrdersResponse>builder()
                 .code(1000)
@@ -33,12 +32,12 @@ public class OrderController {
                 .build();
     }
 
-    @DeleteMapping(value = "/{id}")
+    @DeleteMapping(value = "/order/{id}")
     public void deleteOrder (@PathVariable("id") String id) {
         ordersService.deleteOrders(id);
     }
 
-    @GetMapping(value = "/all")
+    @GetMapping(value = "/orders")
     public ApiResponse<List<OrdersResponse>> getAllOrders (@RequestParam("page") int page, @RequestParam("pageSize") int pageSize) {
         return ApiResponse.<List<OrdersResponse>>builder()
                 .code(1000)
