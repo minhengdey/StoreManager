@@ -189,7 +189,7 @@ public class ProductRepository {
     }
 
     public boolean existsByName (String name) {
-        StringBuilder sql = new StringBuilder("SELECT * FROM STOREMANAGER.PRODUCTS WHERE NAME = ?");
+        StringBuilder sql = new StringBuilder("SELECT 1 FROM STOREMANAGER.PRODUCTS WHERE NAME = ? FETCH FIRST 1 ROWS ONLY");
         try (Connection connection = databaseConfig.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
 
@@ -204,7 +204,7 @@ public class ProductRepository {
     }
 
     public boolean existsById (String id) {
-        StringBuilder sql = new StringBuilder("SELECT * FROM STOREMANAGER.PRODUCTS WHERE ID = ?");
+        StringBuilder sql = new StringBuilder("SELECT 1 FROM STOREMANAGER.PRODUCTS WHERE ID = ? FETCH FIRST 1 ROWS ONLY");
         try (Connection connection = databaseConfig.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
 
