@@ -2,10 +2,12 @@ package com.example.backend.batchProcessing;
 
 import com.example.backend.models.Product;
 import org.springframework.batch.core.*;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.database.JdbcBatchItemWriter;
 import org.springframework.batch.item.database.builder.JdbcBatchItemWriterBuilder;
 import org.springframework.batch.item.file.FlatFileItemReader;
@@ -13,6 +15,7 @@ import org.springframework.batch.item.file.FlatFileItemWriter;
 import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
 import org.springframework.batch.item.file.builder.FlatFileItemWriterBuilder;
 import org.springframework.batch.item.file.transform.DelimitedLineAggregator;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,8 +26,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import javax.sql.DataSource;
-import java.io.BufferedWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -121,10 +123,11 @@ public class BatchConfiguration {
 
     @Bean
     // khởi tạo job batch
-    public Job importUserJob (JobRepository jobRepository, Step step1, JobCompletionNotificationListener listener) {
+    public Job importUserJob (JobRepository jobRepository, Step step1, Step step2, JobCompletionNotificationListener listener) {
         return new JobBuilder("importUserJob", jobRepository) // tạo job tên là importUserJob
                 .listener(listener) // lắng nghe các sự kiện của job (before, after,...)
                 .start(step1) // bắt đầu với step1
+                .next(step2) // tiếp theo với step2
                 .build();
     }
 
@@ -147,9 +150,33 @@ public class BatchConfiguration {
     }
 
     @Bean
-    public DataSourceTransactionManager transactionManager(DataSource dataSource) {
-        return new DataSourceTransactionManager(dataSource);
+    public Step step2 (JobRepository jobRepository, DataSourceTransactionManager transactionManager,
+                       ItemReader<Product> excelItemReader, ProductItemProcessor processor, JdbcBatchItemWriter<Product> writer) {
+        return new StepBuilder("step2", jobRepository)
+                .<Product, Product>chunk(1000, transactionManager) // xử lý theo từng chunk (1000), xong 1 chunk thì commit lên 1 lần rồi tiếp tục xử lý chunk tiếp theo
+                .reader(excelItemReader)
+                .processor(processor)
+                .writer(writer)
+                .taskExecutor(taskExecutor()) // đa luồng
+//                .faultTolerant() // cho phép skip khi có lỗi
+//                .skip(Exception.class) // sẽ skip các dữ liệu bị catch Exception
+//                .skipLimit(1000) // số lượng skip tối đa
+//                .listener(skipListener)
+                .build();
     }
+
+    @Bean
+    @StepScope
+    public ItemReader<Product> excelItemReader(@Value("#{jobParameters['filePath']}") String filePath) throws FileNotFoundException {
+        File file = new File(filePath);
+        if (!file.exists() || file.length() == 0) {
+            throw new IllegalArgumentException("File không tồn tại hoặc rỗng: " + filePath);
+        }
+
+        InputStream inputStream = new FileInputStream(file);
+        return new ExcelItemReader(inputStream);
+    }
+
 
     @Bean
     public TaskExecutor taskExecutor() {
@@ -162,6 +189,12 @@ public class BatchConfiguration {
         executor.initialize();
         return executor;
     }
+
+    /*
+    import 1 triệu dòng dữ liệu:
+    - spring batch mất ~40s
+    - spring batch + multithreading mất ~10s
+     */
 
 // cho chạy ngay khi chạy chương trình
 //    @Bean

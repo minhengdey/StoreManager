@@ -33,7 +33,7 @@ build/
 .vscode/
 
 .env
-product_100.csv
+src/main/resources/product_100.csv
 product_3000.csv
 product_100000.csv
 product_1000000.csv

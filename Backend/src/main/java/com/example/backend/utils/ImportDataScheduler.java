@@ -19,11 +19,12 @@ public class ImportDataScheduler {
     @Autowired
     private Job importUserJob;
 
-    @Scheduled(cron = "0 0 8 * * ?")
+    @Scheduled(cron = "0 10 15 * * ?")
     public void runImportData () {
         try {
             JobParameters jobParameters = new JobParametersBuilder()
                     .addLong("time", System.currentTimeMillis())
+                    .addString("filePath", "src/main/resources/product_100.xlsx")
                     .toJobParameters();
             jobLauncher.run(importUserJob, jobParameters);
         } catch (JobInstanceAlreadyCompleteException | JobRestartException | JobParametersInvalidException |
