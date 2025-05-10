@@ -1,6 +1,5 @@
-package com.example.backend.models;
+package com.example.backend.dto.request;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -10,10 +9,6 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class OrderItem {
-    String id;
+public class OrderItemRequest {
     Integer quantity;
-    Product product;
-    @JsonIgnore
-    Orders orders;
 }

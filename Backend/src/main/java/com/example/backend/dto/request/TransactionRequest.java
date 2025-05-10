@@ -1,11 +1,9 @@
-package com.example.backend.models;
+package com.example.backend.dto.request;
 
 import com.example.backend.enums.PaymentMethod;
 import com.example.backend.enums.StatusOrder;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -13,10 +11,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Transaction {
-    String id;
-    Orders orders;
-    LocalDateTime transactionDate;
-    StatusOrder status;
+public class TransactionRequest {
     PaymentMethod paymentMethod;
 }

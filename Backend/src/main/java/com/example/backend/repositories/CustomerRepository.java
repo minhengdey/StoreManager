@@ -43,7 +43,7 @@ public class CustomerRepository {
     }
 
     public boolean existsById (String id) {
-        StringBuilder sql = new StringBuilder("SELECT * FROM STOREMANAGER.CUSTOMER WHERE ID = ?");
+        StringBuilder sql = new StringBuilder("SELECT 1 FROM STOREMANAGER.CUSTOMER WHERE ID = ? FETCH FIRST 1 ROWS ONLY");
 
         try (Connection connection = databaseConfig.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
