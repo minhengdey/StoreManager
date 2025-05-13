@@ -17,16 +17,16 @@ public class ImportDataScheduler {
     @Autowired
     private JobLauncher jobLauncher;
     @Autowired
-    private Job importUserJob;
+    private Job importProductJob;
 
-    @Scheduled(cron = "0 10 15 * * ?")
+    @Scheduled(cron = "0 7 10 * * ?")
     public void runImportData () {
         try {
             JobParameters jobParameters = new JobParametersBuilder()
                     .addLong("time", System.currentTimeMillis())
-                    .addString("filePath", "src/main/resources/product_100.xlsx")
+                    .addString("filePath", "src/main/resources/product_1000.xlsx")
                     .toJobParameters();
-            jobLauncher.run(importUserJob, jobParameters);
+            jobLauncher.run(importProductJob, jobParameters);
         } catch (JobInstanceAlreadyCompleteException | JobRestartException | JobParametersInvalidException |
                  JobExecutionAlreadyRunningException e) {
             throw new RuntimeException(e);

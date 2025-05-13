@@ -1,10 +1,10 @@
 package com.example.backend.batchProcessing;
 
 import com.example.backend.models.Product;
+import jakarta.validation.ValidationException;
 import org.springframework.batch.core.*;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
-import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemReader;
@@ -16,22 +16,17 @@ import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
 import org.springframework.batch.item.file.builder.FlatFileItemWriterBuilder;
 import org.springframework.batch.item.file.transform.DelimitedLineAggregator;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import javax.sql.DataSource;
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.util.List;
+import java.sql.SQLIntegrityConstraintViolationException;
 
 @Configuration
 public class BatchConfiguration {
@@ -69,43 +64,6 @@ public class BatchConfiguration {
     }
 
     @Bean
-    // skip những dữ liệu không hợp lệ (catch từ Exception trong ProductItemProcessor.class)
-    public SkipListener<Product, Product> skipListener () {
-        return new SkipListener<>() {
-            final Path invalidFilePath = Paths.get("invalid_products.csv");
-
-            @Override
-            public void onSkipInProcess(Product item, Throwable t) {
-                // tạo file csv để điền các product invalid
-                try (BufferedWriter writer = Files.newBufferedWriter(invalidFilePath, StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
-                    writer.write(String.format("%s,%s,%s,%s,INVALID\n",
-                            item.getId(),
-                            item.getName(),
-                            item.getPrice(),
-                            item.getStockQuantity()));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            @Override
-            public void onSkipInWrite(Product item, Throwable t) {
-                try {
-                    // catch luôn exception từ onSkipInProcess
-                    onSkipInProcess(item, t);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-            @Override
-            public void onSkipInRead(Throwable t) {
-                SkipListener.super.onSkipInRead(t);
-            }
-        };
-    }
-
-    @Bean
     // kiểm soát dữ liệu đầu vào
     public ProductItemProcessor processor () {
         return new ProductItemProcessor();
@@ -123,11 +81,11 @@ public class BatchConfiguration {
 
     @Bean
     // khởi tạo job batch
-    public Job importUserJob (JobRepository jobRepository, Step step1, Step step2, JobCompletionNotificationListener listener) {
-        return new JobBuilder("importUserJob", jobRepository) // tạo job tên là importUserJob
+    public Job importProductJob (JobRepository jobRepository, Step step1, Step step2, JobCompletionNotificationListener listener) {
+        return new JobBuilder("importProduct", jobRepository) // tạo job tên là importProductJob
                 .listener(listener) // lắng nghe các sự kiện của job (before, after,...)
-                .start(step1) // bắt đầu với step1
-                .next(step2) // tiếp theo với step2
+                .start(step2) // bắt đầu với step1
+//                .next(step2) // tiếp theo với step2
                 .build();
     }
 
@@ -135,7 +93,7 @@ public class BatchConfiguration {
     // khởi tạo step1
     public Step step1 (JobRepository jobRepository, DataSourceTransactionManager transactionManager,
                        FlatFileItemReader<Product> reader, ProductItemProcessor processor, JdbcBatchItemWriter<Product> writer,
-                       SkipListener<Product, Product> skipListener) {
+                       ProductCsvSkipListener productCsvSkipListener) {
         return new StepBuilder("step1", jobRepository)
                 .<Product, Product>chunk(1000, transactionManager) // xử lý theo từng chunk (1000), xong 1 chunk thì commit lên 1 lần rồi tiếp tục xử lý chunk tiếp theo
                 .reader(reader)
@@ -143,25 +101,30 @@ public class BatchConfiguration {
                 .writer(writer)
                 .taskExecutor(taskExecutor()) // đa luồng
                 .faultTolerant() // cho phép skip khi có lỗi
-                .skip(Exception.class) // sẽ skip các dữ liệu bị catch Exception
+                .skip(ValidationException.class) // sẽ skip các dữ liệu bị catch Exception
+                .skip(DuplicateKeyException.class)
+                .skip(SQLIntegrityConstraintViolationException.class)
                 .skipLimit(1000) // số lượng skip tối đa
-                .listener(skipListener)
+                .listener(productCsvSkipListener)
                 .build();
     }
 
     @Bean
     public Step step2 (JobRepository jobRepository, DataSourceTransactionManager transactionManager,
-                       ItemReader<Product> excelItemReader, ProductItemProcessor processor, JdbcBatchItemWriter<Product> writer) {
+                       ItemReader<Product> excelItemReader, ProductItemProcessor processor, JdbcBatchItemWriter<Product> writer,
+                       ProductExcelSkipListener productExcelSkipListener) {
         return new StepBuilder("step2", jobRepository)
-                .<Product, Product>chunk(1000, transactionManager) // xử lý theo từng chunk (1000), xong 1 chunk thì commit lên 1 lần rồi tiếp tục xử lý chunk tiếp theo
+                .<Product, Product>chunk(50, transactionManager) // xử lý theo từng chunk (1000), xong 1 chunk thì commit lên 1 lần rồi tiếp tục xử lý chunk tiếp theo
                 .reader(excelItemReader)
                 .processor(processor)
                 .writer(writer)
-                .taskExecutor(taskExecutor()) // đa luồng
-//                .faultTolerant() // cho phép skip khi có lỗi
-//                .skip(Exception.class) // sẽ skip các dữ liệu bị catch Exception
-//                .skipLimit(1000) // số lượng skip tối đa
-//                .listener(skipListener)
+//                .taskExecutor(taskExecutor()) // đa luồng
+                .faultTolerant() // cho phép skip khi có lỗi
+                .skip(ValidationException.class) // sẽ skip các dữ liệu bị catch Exception
+                .skip(DuplicateKeyException.class)
+                .skip(SQLIntegrityConstraintViolationException.class)
+                .skipLimit(10000) // số lượng skip tối đa
+                .listener(productExcelSkipListener)
                 .build();
     }
 
@@ -198,12 +161,12 @@ public class BatchConfiguration {
 
 // cho chạy ngay khi chạy chương trình
 //    @Bean
-//    public CommandLineRunner run(JobLauncher jobLauncher, Job importUserJob) {
+//    public CommandLineRunner run(JobLauncher jobLauncher, Job importProductJob) {
 //        return args -> {
 //            JobParameters jobParameters = new JobParametersBuilder()
 //                    .addLong("time", System.currentTimeMillis())
 //                    .toJobParameters();
-//            jobLauncher.run(importUserJob, jobParameters);
+//            jobLauncher.run(importProductJob, jobParameters);
 //        };
 //    }
 

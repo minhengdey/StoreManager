@@ -1,7 +1,6 @@
 package com.example.backend.repositories;
 
 import com.example.backend.configs.DatabaseConfig;
-import com.example.backend.dto.request.ProductRequest;
 import com.example.backend.enums.ErrorCode;
 import com.example.backend.exceptions.AppException;
 import com.example.backend.models.Product;
@@ -159,7 +158,7 @@ public class ProductRepository {
         }
     }
 
-    public boolean existsById (String id) {
+    public synchronized boolean existsById (String id) {
         String sql = "SELECT * FROM STOREMANAGER.PRODUCTS WHERE ID = ?";
         try (Connection connection = databaseConfig.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
