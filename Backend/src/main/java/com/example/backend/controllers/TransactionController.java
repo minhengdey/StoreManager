@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.*;
 
+import java.sql.SQLException;
+
 @RestController
 @RequestMapping(value = "/transaction")
 @RequiredArgsConstructor
@@ -20,20 +22,10 @@ public class TransactionController {
 
     @PostMapping(value = "/{orderId}")
     public ApiResponse<TransactionResponse> addTransaction (@Valid @RequestBody TransactionRequest request,
-                                                            @PathVariable("orderId") String orderId) {
+                                                            @PathVariable("orderId") String orderId) throws SQLException {
         return ApiResponse.<TransactionResponse>builder()
                 .code(1000)
-                .result(transactionService.addTransaction(request, orderId))
-                .build();
-    }
-
-    @PutMapping(value = "/{id}/orders/{orderId}")
-    public ApiResponse<TransactionResponse> updateTransaction (@PathVariable("id") String id,
-                                                               @Valid @RequestBody TransactionRequest request,
-                                                               @PathVariable("orderId") String orderId) {
-        return ApiResponse.<TransactionResponse>builder()
-                .code(1000)
-                .result(transactionService.updateTransaction(id, request, orderId))
+                .result(transactionService.processTransaction(orderId, request))
                 .build();
     }
 

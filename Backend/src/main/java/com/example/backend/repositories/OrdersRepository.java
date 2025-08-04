@@ -27,10 +27,10 @@ public class OrdersRepository {
     ProductRepository productRepository;
 
     public Orders addOrders (Orders orders) {
-        String sql = "INSERT INTO STOREMANAGER.ORDERS (ID, ORDER_DATE, TOTAL_AMOUNT, CUSTOMER_ID) VALUES (?, ?, ?, ?)";
+        StringBuilder sql = new StringBuilder("INSERT INTO STOREMANAGER.ORDERS (ID, ORDER_DATE, TOTAL_AMOUNT, CUSTOMER_ID) VALUES (?, ?, ?, ?)");
 
         try (Connection connection = databaseConfig.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
 
             preparedStatement.setString(1, orders.getId());
             preparedStatement.setTimestamp(2, Timestamp.valueOf(orders.getOrderDate()));
@@ -46,10 +46,10 @@ public class OrdersRepository {
     }
 
     public Orders findById (String id) {
-        String sql = "SELECT * FROM STOREMANAGER.ORDERS WHERE ID = ?";
+        StringBuilder sql = new StringBuilder("SELECT * FROM STOREMANAGER.ORDERS WHERE ID = ?");
 
         try (Connection connection = databaseConfig.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
 
             preparedStatement.setString(1, id);
 
@@ -87,10 +87,10 @@ public class OrdersRepository {
     }
 
     public Orders saveOrder (Orders orders) {
-        String sql = "UPDATE STOREMANAGER.ORDERS SET ORDER_DATE = ?, TOTAL_AMOUNT = ?, CUSTOMER_ID = ? WHERE ID = ?";
+        StringBuilder sql = new StringBuilder("UPDATE STOREMANAGER.ORDERS SET ORDER_DATE = ?, TOTAL_AMOUNT = ?, CUSTOMER_ID = ? WHERE ID = ?");
 
         try (Connection connection = databaseConfig.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
 
             preparedStatement.setTimestamp(1, Timestamp.valueOf(orders.getOrderDate()));
             preparedStatement.setFloat(2, orders.getTotalAmount());
@@ -105,11 +105,14 @@ public class OrdersRepository {
         }
     }
 
-    public List<Orders> getAllOrders () {
-        String sql = "SELECT * FROM STOREMANAGER.ORDERS";
+    public List<Orders> getAllOrders (int page, int pageSize) {
+        StringBuilder sql = new StringBuilder("SELECT * FROM STOREMANAGER.ORDERS OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+        int offset = (page - 1) * pageSize;
 
         try (Connection connection = databaseConfig.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
+            preparedStatement.setInt(1, offset);
+            preparedStatement.setInt(2, pageSize);
 
             ResultSet resultSet = preparedStatement.executeQuery();
             List<Orders> list = new ArrayList<>();
@@ -146,10 +149,10 @@ public class OrdersRepository {
     }
 
     public void deleteOrder (String id) {
-        String sql = "DELETE FROM STOREMANAGER.ORDERS WHERE ID = ?";
+        StringBuilder sql = new StringBuilder("DELETE FROM STOREMANAGER.ORDERS WHERE ID = ?");
 
         try (Connection connection = databaseConfig.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
 
             preparedStatement.setString(1, id);
 
@@ -160,10 +163,10 @@ public class OrdersRepository {
     }
 
     public boolean existsById (String id) {
-        String sql = "SELECT * FROM STOREMANAGER.ORDERS WHERE ID = ?";
+        StringBuilder sql = new StringBuilder("SELECT 1 FROM STOREMANAGER.ORDERS WHERE ID = ? FETCH FIRST 1 ROWS ONLY");
 
         try (Connection connection = databaseConfig.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
 
             preparedStatement.setString(1, id);
 

@@ -35,7 +35,6 @@ public class OrdersService {
     OrdersExcel ordersExcel;
     OrdersCsv ordersCsv;
 
-    @Transactional
     public OrdersResponse createOrders (String customerId) {
         Customer customer = customerRepository.findById(customerId);
         Orders orders = new Orders();
@@ -62,8 +61,8 @@ public class OrdersService {
         ordersRepository.deleteOrder(id);
     }
 
-    public List<OrdersResponse> getAllOrders () {
-        return ordersRepository.getAllOrders().stream().map(ordersMapper::toResponse).toList();
+    public List<OrdersResponse> getAllOrders (int page, int pageSize) {
+        return ordersRepository.getAllOrders(page, pageSize).stream().map(ordersMapper::toResponse).toList();
     }
 
     public void saveAllFromFile (MultipartFile file, HttpServletResponse response) throws IOException {

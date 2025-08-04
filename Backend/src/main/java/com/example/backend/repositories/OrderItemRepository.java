@@ -51,7 +51,7 @@ public class OrderItemRepository {
     }
 
     public boolean existsById (String id) {
-        String sql = "SELECT * FROM STOREMANAGER.ORDER_ITEM WHERE ID = ?";
+        String sql = "SELECT 1 FROM STOREMANAGER.ORDER_ITEM WHERE ID = ? FETCH FIRST 1 ROWS ONLY";
 
         try (Connection connection = databaseConfig.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
@@ -123,13 +123,16 @@ public class OrderItemRepository {
         }
     }
 
-    public List<OrderItem> getAllByProductId (String productId) {
-        String sql = "SELECT * FROM STOREMANAGER.ORDER_ITEM WHERE PRODUCT_ID = ?";
+    public List<OrderItem> getAllByProductId (String productId, int page, int pageSize) {
+        String sql = "SELECT * FROM STOREMANAGER.ORDER_ITEM WHERE PRODUCT_ID = ? OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        int offset = (page - 1) * pageSize;
 
         try (Connection connection = databaseConfig.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
 
             preparedStatement.setString(1, productId);
+            preparedStatement.setInt(2, offset);
+            preparedStatement.setInt(3, pageSize);
 
             List<OrderItem> list = new ArrayList<>();
             ResultSet resultSet = preparedStatement.executeQuery();

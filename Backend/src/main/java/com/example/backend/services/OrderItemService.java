@@ -74,17 +74,19 @@ public class OrderItemService {
     }
 
     public void deleteOrderItem (String id) {
-        if (!orderItemRepository.existsById(id)) {
-            throw new AppException(ErrorCode.ORDER_ITEM_NOT_FOUND);
-        }
+        OrderItem orderItem = orderItemRepository.findById(id);
+        Orders orders = orderItem.getOrders();
+        orders.setTotalAmount(orders.getTotalAmount() - orderItem.getQuantity() * orderItem.getProduct().getPrice());
+        orders.getOrderItems().remove(orderItem);
+        ordersRepository.saveOrder(orders);
         orderItemRepository.deleteOrderItem(id);
     }
 
-    public List<OrderItemResponse> getAllByProductId (String productId) {
+    public List<OrderItemResponse> getAllByProductId (String productId, int page, int pageSize) {
         if (!productRepository.existsById(productId)) {
             throw new AppException(ErrorCode.PRODUCT_NOT_FOUND);
         }
-        return orderItemRepository.getAllByProductId(productId).stream().map(orderItemMapper::toResponse).toList();
+        return orderItemRepository.getAllByProductId(productId, page, pageSize).stream().map(orderItemMapper::toResponse).toList();
     }
 
     public void saveAllFromFile (MultipartFile file, HttpServletResponse response) throws IOException {

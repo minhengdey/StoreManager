@@ -58,8 +58,8 @@ public class CustomerService {
         customerRepository.deleteCustomer(id);
     }
 
-    public List<CustomerResponse> getAllCustomer () {
-        return customerRepository.getAllCustomer().stream().map(customerMapper::toResponse).toList();
+    public List<CustomerResponse> getAllCustomer (int page, int pageSize) {
+        return customerRepository.getAllCustomer(page, pageSize).stream().map(customerMapper::toResponse).toList();
     }
 
     public void saveAllFromFile (MultipartFile file, HttpServletResponse response) throws IOException {

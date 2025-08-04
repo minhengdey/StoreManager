@@ -24,10 +24,10 @@ public class CustomerRepository {
     DatabaseConfig databaseConfig;
 
     public Customer addCustomer (Customer customer) {
-        String sql = "INSERT INTO STOREMANAGER.CUSTOMER (ID, NAME, PHONE, EMAIL) VALUES (?, ?, ?, ?)";
+        StringBuilder sql = new StringBuilder("INSERT INTO STOREMANAGER.CUSTOMER (ID, NAME, PHONE, EMAIL) VALUES (?, ?, ?, ?)");
 
         try (Connection connection = databaseConfig.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
 
             preparedStatement.setString(1, customer.getId());
             preparedStatement.setString(2, customer.getName());
@@ -43,10 +43,10 @@ public class CustomerRepository {
     }
 
     public boolean existsById (String id) {
-        String sql = "SELECT * FROM STOREMANAGER.CUSTOMER WHERE ID = ?";
+        StringBuilder sql = new StringBuilder("SELECT 1 FROM STOREMANAGER.CUSTOMER WHERE ID = ? FETCH FIRST 1 ROWS ONLY");
 
         try (Connection connection = databaseConfig.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
 
             preparedStatement.setString(1, id);
 
@@ -59,10 +59,10 @@ public class CustomerRepository {
     }
 
     public Customer findById (String id) {
-        String sql = "SELECT * FROM STOREMANAGER.CUSTOMER WHERE ID = ?";
+        StringBuilder sql = new StringBuilder("SELECT * FROM STOREMANAGER.CUSTOMER WHERE ID = ?");
 
         try (Connection connection = databaseConfig.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
 
             preparedStatement.setString(1, id);
 
@@ -83,10 +83,10 @@ public class CustomerRepository {
     }
 
     public Customer saveCustomer (Customer customer) {
-        String sql = "UPDATE STOREMANAGER.CUSTOMER SET NAME = ?, PHONE = ?, EMAIL = ? WHERE ID = ?";
+        StringBuilder sql = new StringBuilder("UPDATE STOREMANAGER.CUSTOMER SET NAME = ?, PHONE = ?, EMAIL = ? WHERE ID = ?");
 
         try (Connection connection = databaseConfig.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
 
             preparedStatement.setString(1, customer.getName());
             preparedStatement.setString(2, customer.getPhone());
@@ -102,10 +102,10 @@ public class CustomerRepository {
     }
 
     public void deleteCustomer (String id) {
-        String sql = "DELETE FROM STOREMANAGER.CUSTOMER WHERE ID = ?";
+        StringBuilder sql = new StringBuilder("DELETE FROM STOREMANAGER.CUSTOMER WHERE ID = ?");
 
         try (Connection connection = databaseConfig.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
 
             preparedStatement.setString(1, id);
 
@@ -115,11 +115,14 @@ public class CustomerRepository {
         }
     }
 
-    public List<Customer> getAllCustomer () {
-        String sql = "SELECT * FROM STOREMANAGER.CUSTOMER";
+    public List<Customer> getAllCustomer (int page, int pageSize) {
+        StringBuilder sql = new StringBuilder("SELECT * FROM STOREMANAGER.CUSTOMER OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+        int offset = (page - 1) * pageSize;
 
         try (Connection connection = databaseConfig.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
+            preparedStatement.setInt(1, offset);
+            preparedStatement.setInt(2, pageSize);
 
             ResultSet resultSet = preparedStatement.executeQuery();
             List<Customer> list = new ArrayList<>();

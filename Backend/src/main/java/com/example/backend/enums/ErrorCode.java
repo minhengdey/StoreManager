@@ -27,6 +27,8 @@ public enum ErrorCode {
     TRANSACTION_FAILED(1011, "Transaction failed", HttpStatus.BAD_REQUEST),
     SHEET_NOT_FOUND(1012, "Excel sheet not found", HttpStatus.NOT_FOUND),
     UNKNOWN_FILE_TYPE(1013, "Unknown file type", HttpStatus.BAD_REQUEST);
+    EMPTY_ORDER_ITEM(1014, "Empty order item", HttpStatus.NOT_FOUND),
+    STOCK_EMPTY(1015, "Stock empty", HttpStatus.NOT_FOUND);
 
     int code;
     String message;

@@ -3,6 +3,7 @@ package com.example.backend.repositories;
 import com.example.backend.configs.DatabaseConfig;
 import com.example.backend.enums.ErrorCode;
 import com.example.backend.exceptions.AppException;
+import com.example.backend.models.OrderItem;
 import com.example.backend.models.Product;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -24,10 +25,10 @@ public class ProductRepository {
     DatabaseConfig databaseConfig;
 
     public Product addProduct (Product product) {
-        String sql = "INSERT INTO STOREMANAGER.PRODUCTS (ID, NAME, PRICE, STOCK_QUANTITY) VALUES (?, ?, ?, ?)";
+        StringBuilder sql = new StringBuilder("INSERT INTO STOREMANAGER.PRODUCTS (ID, NAME, PRICE, STOCK_QUANTITY) VALUES (?, ?, ?, ?)");
 
         try (Connection connection = databaseConfig.getConnection();
-        PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
 
             preparedStatement.setString(1, product.getId());
             preparedStatement.setString(2, product.getName());
@@ -44,9 +45,9 @@ public class ProductRepository {
     }
 
     public Product findById (String id) {
-        String sql = "SELECT * FROM STOREMANAGER.PRODUCTS WHERE ID = ?";
+        StringBuilder sql = new StringBuilder("SELECT * FROM STOREMANAGER.PRODUCTS WHERE ID = ?");
         try (Connection connection = databaseConfig.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
 
             preparedStatement.setString(1, id);
 
@@ -66,10 +67,49 @@ public class ProductRepository {
         }
     }
 
+    public void processTransaction (List<OrderItem> orderItems) throws SQLException {
+        Connection connection = databaseConfig.getConnection();
+        connection.setAutoCommit(false);
+        try {
+            for (OrderItem orderItem : orderItems) {
+                String productId = orderItem.getProduct().getId();
+                int orderQuantity = orderItem.getQuantity();
+
+                // Lock product row for update
+                PreparedStatement stmt = connection.prepareStatement("SELECT STOCK_QUANTITY FROM STOREMANAGER.PRODUCTS WHERE ID = ? FOR UPDATE");
+                stmt.setString(1, productId);
+                ResultSet rs = stmt.executeQuery();
+
+                if (rs.next()) {
+                    int stockQuantity = rs.getInt("STOCK_QUANTITY");
+
+                    // Kiểm tra tồn kho, nếu không đủ thì rollback và throw exception
+                    if (stockQuantity < orderQuantity) {
+                        connection.rollback();
+                        throw new AppException(ErrorCode.STOCK_EMPTY);
+                    }
+
+                    // Trừ số lượng tồn kho
+                    PreparedStatement updateStmt = connection.prepareStatement("UPDATE STOREMANAGER.PRODUCTS SET STOCK_QUANTITY = STOCK_QUANTITY - ? WHERE ID = ?");
+                    updateStmt.setInt(1, orderQuantity);
+                    updateStmt.setString(2, productId);
+                    updateStmt.executeUpdate();
+                }
+            }
+
+            connection.commit();  // Commit nếu tất cả các sản phẩm đều được xử lý thành công
+        } catch (SQLException e) {
+            connection.rollback();  // Rollback nếu có lỗi
+            throw new AppException(ErrorCode.TRANSACTION_FAILED);
+        } finally {
+            connection.close();  // Đảm bảo đóng kết nối sau khi hoàn thành
+        }
+    }
+
     public Product findByName (String name) {
-        String sql = "SELECT * FROM STOREMANAGER.PRODUCTS WHERE NAME = ?";
+        StringBuilder sql = new StringBuilder("SELECT * FROM STOREMANAGER.PRODUCTS WHERE NAME = ?");
         try (Connection connection = databaseConfig.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
 
             preparedStatement.setString(1, name);
 
@@ -90,9 +130,9 @@ public class ProductRepository {
     }
 
     public Product saveProduct (Product product) {
-        String sql = "UPDATE STOREMANAGER.PRODUCTS SET NAME = ?, PRICE = ?, STOCK_QUANTITY = ? WHERE ID = ?";
+        StringBuilder sql = new StringBuilder("UPDATE STOREMANAGER.PRODUCTS SET NAME = ?, PRICE = ?, STOCK_QUANTITY = ? WHERE ID = ?");
         try (Connection connection = databaseConfig.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
 
             preparedStatement.setString(1, product.getName());
             preparedStatement.setFloat(2, product.getPrice());
@@ -108,9 +148,9 @@ public class ProductRepository {
     }
 
     public void deleteProduct (String id) {
-        String sql = "DELETE FROM STOREMANAGER.PRODUCTS WHERE ID = ?";
+        StringBuilder sql = new StringBuilder("DELETE FROM STOREMANAGER.PRODUCTS WHERE ID = ?");
         try (Connection connection = databaseConfig.getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
 
             preparedStatement.setString(1, id);
 
@@ -120,10 +160,14 @@ public class ProductRepository {
         }
     }
 
-    public List<Product> getAllProduct () {
-        String sql = "SELECT * FROM STOREMANAGER.PRODUCTS";
+    public List<Product> getAllProduct (int page, int pageSize) {
+        StringBuilder sql = new StringBuilder("SELECT * FROM STOREMANAGER.PRODUCTS OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+        int offset = (page - 1) * pageSize;
+
         try (Connection connection = databaseConfig.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
+            preparedStatement.setInt(1, offset);
+            preparedStatement.setInt(2, pageSize);
 
             ResultSet resultSet = preparedStatement.executeQuery();
             List<Product> list = new ArrayList<>();
@@ -144,9 +188,9 @@ public class ProductRepository {
     }
 
     public boolean existsByName (String name) {
-        String sql = "SELECT * FROM STOREMANAGER.PRODUCTS WHERE NAME = ?";
+        StringBuilder sql = new StringBuilder("SELECT 1 FROM STOREMANAGER.PRODUCTS WHERE NAME = ? FETCH FIRST 1 ROWS ONLY");
         try (Connection connection = databaseConfig.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
 
             preparedStatement.setString(1, name);
 
@@ -159,9 +203,9 @@ public class ProductRepository {
     }
 
     public synchronized boolean existsById (String id) {
-        String sql = "SELECT * FROM STOREMANAGER.PRODUCTS WHERE ID = ?";
+        StringBuilder sql = new StringBuilder("SELECT 1 FROM STOREMANAGER.PRODUCTS WHERE ID = ? FETCH FIRST 1 ROWS ONLY");
         try (Connection connection = databaseConfig.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
 
             preparedStatement.setString(1, id);
 
