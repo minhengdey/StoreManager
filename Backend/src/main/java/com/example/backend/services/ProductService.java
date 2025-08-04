@@ -3,16 +3,23 @@ package com.example.backend.services;
 import com.example.backend.dto.request.ProductRequest;
 import com.example.backend.dto.response.ProductResponse;
 import com.example.backend.enums.ErrorCode;
+import com.example.backend.enums.FileType;
 import com.example.backend.exceptions.AppException;
 import com.example.backend.mappers.ProductMapper;
 import com.example.backend.models.Product;
 import com.example.backend.repositories.ProductRepository;
+import com.example.backend.utils.FileUtility;
 import com.example.backend.utils.IdGenerator;
+import com.example.backend.utils.csv.ProductCsv;
+import com.example.backend.utils.excel.ProductExcel;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @Service
@@ -21,6 +28,8 @@ import java.util.List;
 public class ProductService {
     ProductRepository productRepository;
     ProductMapper productMapper;
+    ProductExcel productExcel;
+    ProductCsv productCsv;
 
     public ProductResponse addProduct (ProductRequest request) {
         if (productRepository.existsByName(request.getName())) {
@@ -61,5 +70,17 @@ public class ProductService {
 
     public List<ProductResponse> getAllProduct (int page, int pageSize) {
         return productRepository.getAllProduct(page, pageSize).stream().map(productMapper::toResponse).toList();
+    }
+
+    public void saveAllFromFile (MultipartFile file, HttpServletResponse response) throws IOException {
+        if (FileUtility.getFileType(file).equals(FileType.EXCEL)) {
+            List<Product> list = productExcel.excelToProductList(file.getInputStream(), response);
+            productRepository.saveAll(list);
+        } else if (FileUtility.getFileType(file).equals(FileType.CSV)) {
+            List<Product> list = productCsv.csvToProductList(file.getInputStream(), response);
+            productRepository.saveAll(list);
+        } else {
+            throw new AppException(ErrorCode.UNKNOWN_FILE_TYPE);
+        }
     }
 }

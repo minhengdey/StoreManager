@@ -141,4 +141,15 @@ public class CustomerRepository {
             throw new AppException(ErrorCode.CONNECT_ERROR);
         }
     }
+
+    public List<Customer> saveAllCustomer (List<Customer> list) {
+        for (Customer customer : list) {
+            if (existsById(customer.getId())) {
+                saveCustomer(customer);
+            } else {
+                addCustomer(customer);
+            }
+        }
+        return list;
+    }
 }

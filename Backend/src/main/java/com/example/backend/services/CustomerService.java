@@ -3,16 +3,23 @@ package com.example.backend.services;
 import com.example.backend.dto.request.CustomerRequest;
 import com.example.backend.dto.response.CustomerResponse;
 import com.example.backend.enums.ErrorCode;
+import com.example.backend.enums.FileType;
 import com.example.backend.exceptions.AppException;
 import com.example.backend.mappers.CustomerMapper;
 import com.example.backend.models.Customer;
 import com.example.backend.repositories.CustomerRepository;
+import com.example.backend.utils.csv.CustomerCsv;
+import com.example.backend.utils.excel.CustomerExcel;
+import com.example.backend.utils.FileUtility;
 import com.example.backend.utils.IdGenerator;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @Service
@@ -22,6 +29,8 @@ public class CustomerService {
 
     CustomerRepository customerRepository;
     CustomerMapper customerMapper;
+    CustomerExcel customerExcel;
+    CustomerCsv customerCsv;
 
     public CustomerResponse addCustomer (CustomerRequest request) {
         Customer customer = customerMapper.toCustomer(request);
@@ -51,5 +60,17 @@ public class CustomerService {
 
     public List<CustomerResponse> getAllCustomer (int page, int pageSize) {
         return customerRepository.getAllCustomer(page, pageSize).stream().map(customerMapper::toResponse).toList();
+    }
+
+    public void saveAllFromFile (MultipartFile file, HttpServletResponse response) throws IOException {
+        if (FileUtility.getFileType(file).equals(FileType.EXCEL)) {
+            List<Customer> list = customerExcel.excelToCustomerList(file.getInputStream(), response);
+            customerRepository.saveAllCustomer(list);
+        } else if (FileUtility.getFileType(file).equals(FileType.CSV)) {
+            List<Customer> list = customerCsv.csvToCustomerList(file.getInputStream(), response);
+            customerRepository.saveAllCustomer(list);
+        } else {
+            throw new AppException(ErrorCode.UNKNOWN_FILE_TYPE);
+        }
     }
 }

@@ -1,7 +1,6 @@
 package com.example.backend.repositories;
 
 import com.example.backend.configs.DatabaseConfig;
-import com.example.backend.dto.request.ProductRequest;
 import com.example.backend.enums.ErrorCode;
 import com.example.backend.exceptions.AppException;
 import com.example.backend.models.OrderItem;
@@ -203,7 +202,7 @@ public class ProductRepository {
         }
     }
 
-    public boolean existsById (String id) {
+    public synchronized boolean existsById (String id) {
         StringBuilder sql = new StringBuilder("SELECT 1 FROM STOREMANAGER.PRODUCTS WHERE ID = ? FETCH FIRST 1 ROWS ONLY");
         try (Connection connection = databaseConfig.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
@@ -216,5 +215,16 @@ public class ProductRepository {
         } catch (SQLException e) {
             throw new AppException(ErrorCode.CONNECT_ERROR);
         }
+    }
+
+    public List<Product> saveAll (List<Product> list) {
+        for (Product product : list) {
+            if (existsById(product.getId())) {
+                saveProduct(product);
+            } else {
+                addProduct(product);
+            }
+        }
+        return list;
     }
 }

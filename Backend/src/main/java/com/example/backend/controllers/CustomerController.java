@@ -4,12 +4,15 @@ import com.example.backend.dto.request.CustomerRequest;
 import com.example.backend.dto.response.ApiResponse;
 import com.example.backend.dto.response.CustomerResponse;
 import com.example.backend.services.CustomerService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -54,5 +57,10 @@ public class CustomerController {
                 .code(1000)
                 .result(customerService.getAllCustomer(page, pageSize))
                 .build();
+    }
+
+    @PostMapping(value = "/upload")
+    public void uploadFile (@RequestParam("file") MultipartFile file, HttpServletResponse response) throws IOException {
+        customerService.saveAllFromFile(file, response);
     }
 }
