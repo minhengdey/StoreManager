@@ -1,7 +1,8 @@
-package com.example.backend.models;
+package com.example.backend.dto.response;
 
 import com.example.backend.enums.PaymentMethod;
 import com.example.backend.enums.StatusOrder;
+import com.example.backend.models.Orders;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -13,7 +14,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Transaction {
+public class TransactionResponse {
     String id;
     Orders orders;
     LocalDateTime transactionDate;

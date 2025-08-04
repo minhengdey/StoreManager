@@ -1,5 +1,7 @@
-package com.example.backend.models;
+package com.example.backend.dto.response;
 
+import com.example.backend.models.Customer;
+import com.example.backend.models.OrderItem;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -12,7 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Orders {
+public class OrdersResponse {
     String id;
     LocalDateTime orderDate;
     Float totalAmount;
